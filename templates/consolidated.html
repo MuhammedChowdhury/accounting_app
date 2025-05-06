@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        function toggleForm() {
+            // Get selected document type
+            const selectedType = document.getElementById('document_type').value;
+
+            // Hide all form sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Show the selected form
+            if (selectedType) {
+                document.getElementById(selectedType + '_form').classList.remove('hidden');
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Business Management</h1>
+    <label for="document_type">Select Document Type:</label>
+    <select id="document_type" onchange="toggleForm()">
+        <option value="">--Select--</option>
+        <option value="quote">Quote</option>
+        <option value="invoice">Invoice</option>
+        <option value="purchase_order">Purchase Order</option>
+        <option value="bill">Bill</option>
+    </select>
+
+    <!-- Quote Form -->
+    <div id="quote_form" class="form-section hidden">
+        <h2>Create a Quote</h2>
+        <form action="/add_quote" method="POST">
+            <label for="customer_name">Customer Name:</label>
+            <input type="text" id="customer_name" name="customer_name" required>
+
+            <label for="line_items">Line Items (JSON):</label>
+            <textarea id="line_items" name="line_items" required></textarea>
+
+            <label for="total_amount">Total Amount:</label>
+            <input type="number" id="total_amount" name="total_amount" step="0.01" required>
+
+            <label for="validity_period">Validity Period:</label>
+            <input type="date" id="validity_period" name="validity_period" required>
+
+            <button type="submit">Add Quote</button>
+        </form>
+    </div>
+
+    <!-- Invoice Form -->
+    <div id="invoice_form" class="form-section hidden">
+        <h2>Create an Invoice</h2>
+        <form action="/add_invoice" method="POST">
+            <label for="client_name">Client Name:</label>
+            <input type="text" id="client_name" name="client_name" required>
+
+            <label for="line_items">Line Items (JSON):</label>
+            <textarea id="line_items" name="line_items" required></textarea>
+
+            <label for="total_amount">Total Amount:</label>
+            <input type="number" id="total_amount" name="total_amount" step="0.01" required>
+
+            <label for="due_date">Due Date:</label>
+            <input type="date" id="due_date" name="due_date" required>
+
+            <button type="submit">Add Invoice</button>
+        </form>
+    </div>
+
+    <!-- Purchase Order Form -->
+    <div id="purchase_order_form" class="form-section hidden">
+        <h2>Create a Purchase Order</h2>
+        <form action="/add_purchase_order" method="POST">
+            <label for="supplier_name">Supplier Name:</label>
+            <input type="text" id="supplier_name" name="supplier_name" required>
+
+            <label for="line_items">Line Items (JSON):</label>
+            <textarea id="line_items" name="line_items" required></textarea>
+
+            <label for="total_amount">Total Amount:</label>
+            <input type="number" id="total_amount" name="total_amount" step="0.01" required>
+
+            <label for="shipping_address">Shipping Address:</label>
+            <textarea id="shipping_address" name="shipping_address" required></textarea>
+
+            <button type="submit">Add Purchase Order</button>
+        </form>
+    </div>
+
+    <!-- Bill Form -->
+    <div id="bill_form" class="form-section hidden">
+        <h2>Create a Bill</h2>
+        <form action="/add_bill" method="POST">
+            <label for="vendor_name">Vendor Name:</label>
+            <input type="text" id="vendor_name" name="vendor_name" required>
+
+            <label for="line_items">Line Items (JSON):</label>
+            <textarea id="line_items" name="line_items" required></textarea>
+
+            <label for="total_amount">Total Amount:</label>
+            <input type="number" id="total_amount" name="total_amount" step="0.01" required>
+
+            <label for="due_date">Due Date:</label>
+            <input type="date" id="due_date" name="due_date" required>
+
+            <button type="submit">Add Bill</button>
+        </form>
+    </div>
+</body>
+</html>
