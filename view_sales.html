@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Sales</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; background-color: white; }
+        th, td { padding: 10px; border: 1px solid black; }
+        button { padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button.delete { background-color: #e74c3c; }
+        button:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <h1>All Sales</h1>
+    <table border="1">
+        <tr>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Sale Date</th>
+            <th>Total Revenue</th>
+            <th>Actions</th>
+        </tr>
+        {% for sale in sales %}
+        <tr>
+            <td>{{ sale.item_name }}</td>
+            <td>{{ sale.quantity }}</td>
+            <td>${{ sale.price }}</td>
+            <td>{{ sale.sale_date.strftime('%Y-%m-%d') }}</td>
+            <td>${{ sale.quantity * sale.price }}</td>
+            <td>
+                <!-- Convert to Invoice Button -->
+                <form action="/sale_routes/generate_invoice/{{ sale.id }}" method="POST" style="display:inline;">
+                    <button type="submit">Generate Invoice</button>
+                </form>
+                
+                <!-- Delete Sale Button -->
+                <form action="/sale_routes/delete_sale/{{ sale.id }}" method="POST" style="display:inline;">
+                    <button type="submit" class="delete">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/sale_routes/add_sale">Add a New Sale</a>
+</body>
+</html>

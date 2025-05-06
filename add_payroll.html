@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Payroll Record</title>
+</head>
+<body>
+    <h1>📄 Add Payroll Record</h1>
+    <form action="/payroll_routes/add_payroll" method="POST">
+        <label for="employee_name">Employee Name:</label>
+        <input type="text" id="employee_name" name="employee_name" required><br><br>
+
+        <label for="gross_wages">Gross Wages ($):</label>
+        <input type="number" id="gross_wages" name="gross_wages" step="0.01" required><br><br>
+
+        <label for="date">Date:</label>
+        <input type="text" id="date" name="date" placeholder="YYYY-MM-DD" required><br><br>
+
+        <label for="payg_withholding">PAYG Withholding ($):</label>
+        <input type="number" id="payg_withholding" name="payg_withholding" step="0.01"><br><br>
+
+        <label for="superannuation">Superannuation ($):</label>
+        <input type="number" id="superannuation" name="superannuation" step="0.01"><br><br>
+
+        <label for="deductions">Deductions ($):</label>
+        <input type="number" id="deductions" name="deductions" step="0.01"><br><br>
+
+        <label for="company_id">Company ID:</label>
+        <input type="number" id="company_id" name="company_id" required><br><br>
+
+        <button type="submit">Submit Payroll</button>
+    </form>
+</body>
+</html>
