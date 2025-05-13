@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bookkeeping App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Bookkeeping App</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/profit_loss">Profit & Loss</a></li>
+                <li><a href="/balance_sheet">Balance Sheet</a></li>
+                <li><a href="/gst_summary">GST Summary</a></li>
+                <li><a href="/trial_balance">Trial Balance</a></li>
+                <li><a href="/ledger">Ledger</a></li>
+                <li><a href="/add_company">Add Company</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+        <p>&copy; 2025 Bookkeeping App. All rights reserved.</p>
+        <p>Contact us at <a href="mailto:support@bookkeepingapp.com">support@bookkeepingapp.com</a></p>
+    </footer>
+</body>
+</html>
