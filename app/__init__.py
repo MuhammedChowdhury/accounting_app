@@ -46,19 +46,19 @@ def create_app():
             cursor.close()
 
     # Register Blueprints
-    from app.routes.transaction_routes import transaction_routes
-    from app.routes.financial_routes import financial_routes
-    from app.routes.bas_routes import bas_routes
-    from app.routes.company_routes import company_routes
-    from app.routes.payroll_routes import payroll_routes
-    from app.routes.cash_flow_routes import cash_flow_routes
-    from app.routes.ledger_routes import ledger_routes
+    from .routes.transaction_routes import transaction_routes
+    from .routes.financial_routes import financial_routes
+    from .routes.bas_routes import bas_routes
+    from .routes.company_routes import company_routes
+    from .routes.payroll_routes import payroll_routes
+    from .routes.cash_flow_routes import cash_flow_routes
+    from .routes.ledger_routes import ledger_routes
 
     # ✅ Fixed Blueprint Registration
-    from app.routes.quote_routes import quote_routes
-    from app.routes.invoice_routes import invoice_routes
-    from app.routes.purchase_order_routes import purchase_order_routes
-    from app.routes.bill_routes import bill_routes
+    from .routes.quote_routes import quote_routes
+    from .routes.invoice_routes import invoice_routes
+    from .routes.purchase_order_routes import purchase_order_routes
+    from .routes.bill_routes import bill_routes
 
     app.register_blueprint(transaction_routes, url_prefix='/transaction_routes')
     app.register_blueprint(financial_routes, url_prefix='/financial_routes')
