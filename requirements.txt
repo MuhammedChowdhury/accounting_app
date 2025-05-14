@@ -1,4 +1,3 @@
-
 pymysql
 gunicorn
 flask
@@ -6,4 +5,4 @@ flask_sqlalchemy
 flask_migrate
 python-dotenv
 requests
-
+openpyxl
