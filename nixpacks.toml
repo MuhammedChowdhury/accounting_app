@@ -1,2 +1,2 @@
 [pkgs]
-apt = ["default-libmysqlclient-dev", "libmysqlclient-dev", "pkg-config", "gcc", "mariadb-client"]
+apt = ["pkg-config", "gcc", "mariadb-client"]
