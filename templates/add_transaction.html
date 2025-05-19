@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Transaction</title>
+</head>
+<body>
+    <h2>Add a New Transaction</h2>
+    <form action="/add_transaction" method="POST" enctype="multipart/form-data">
+        <label>Description:</label>
+        <input type="text" name="description" required><br>
+
+        <label>Debit:</label>
+        <input type="number" step="0.01" name="debit"><br>
+
+        <label>Credit:</label>
+        <input type="number" step="0.01" name="credit"><br>
+
+        <label>Date:</label>
+        <input type="date" name="date" required><br>
+
+        <label>Type of Expense:</label>
+        <input type="text" name="type_of_expense"><br>
+
+        <label>Type of Income:</label>
+        <input type="text" name="type_of_income"><br>
+
+        <label>Upload Invoice:</label>
+        <input type="file" name="invoice"><br>
+
+        <button type="submit">Submit Transaction</button>
+    </form>
+</body>
+</html>
