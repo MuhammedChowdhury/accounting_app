@@ -35,8 +35,11 @@ app.register_blueprint(report_routes)
 app.register_blueprint(transaction_routes)
 
 @app.route('/')
+@app.route('/index')
 def home():
-    return render_template("index.html")  # ✅ Now properly loads the homepage!
+    # Dynamically list all routes for display in index.html
+    routes = [rule.rule for rule in app.url_map.iter_rules() if "static" not in rule.rule]
+    return render_template("index.html", routes=routes)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

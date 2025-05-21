@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <title>Home</title>
+    <title>Home Page</title>
 </head>
 <body>
-    <h1>Welcome to Your Accounting App</h1>
-    <nav>
-        <a href="/add-transaction">Add Transaction</a>
-        <a href="/cash_flow">Cash Flow</a>
-        <a href="/general_ledger_form">General Ledger</a>
-    </nav>
+    <h1>Welcome to My Flask App</h1>
+    <ul>
+        {% for route in routes %}
+            <li><a href="{{ route }}">{{ route }}</a></li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
