@@ -59,6 +59,7 @@ def add_transaction():
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             invoice_path = os.path.join(UPLOAD_FOLDER, filename)
 
+        # ✅ Save Transaction to Database
         new_transaction = FinancialRecord(
             date=transaction_date,
             description=description,
@@ -76,3 +77,40 @@ def add_transaction():
     except Exception as e:
         logging.error(f"Error adding transaction: {e}", exc_info=True)
         return render_template('transaction_error.html', error_message="Failed to add transaction due to server error"), 500
+
+# ✅ Route: Bulk Import Transactions (POST)
+@transaction_routes.route('/add_transaction_bulk', methods=['POST'])
+def add_transaction_bulk():
+    try:
+        transactions = request.json.get('transactions', [])
+        if not transactions:
+            return jsonify({"error": "No transactions provided"}), 400
+
+        for txn in transactions:
+            description = txn.get("description")
+            debit = txn.get("debit", 0.0)
+            credit = txn.get("credit", 0.0)
+            date_str = txn.get("date")
+
+            if not description or not date_str:
+                return jsonify({"error": f"Missing required fields in transaction: {description}"}), 400
+
+            try:
+                transaction_date = datetime.strptime(date_str, '%Y-%m-%d')
+            except ValueError:
+                return jsonify({"error": f"Invalid date format in transaction: {description}. Use YYYY-MM-DD."}), 400
+
+            new_transaction = FinancialRecord(
+                date=transaction_date,
+                description=description,
+                debit=float(debit),
+                credit=float(credit)
+            )
+            db.session.add(new_transaction)
+
+        db.session.commit()
+        return jsonify({"message": "Bulk transactions added successfully"}), 201
+
+    except Exception as e:
+        logging.error(f"Error adding bulk transactions: {e}", exc_info=True)
+        return jsonify({"error": "Failed to add transactions due to server error"}), 500
