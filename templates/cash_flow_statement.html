@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Cash Flow Statement</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cash Flow Statement</h1>
+        <p><strong>Company ID:</strong> {{ company_id }}</p>
+        <p><strong>Reporting Period:</strong> {{ date_from }} to {{ date_to }}</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Amount ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Cash Inflow</td>
+                    <td>{{ cash_inflow }}</td>
+                </tr>
+                <tr>
+                    <td>Cash Outflow</td>
+                    <td>{{ cash_outflow }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Net Cash Flow</strong></td>
+                    <td><strong>{{ net_cash_flow }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

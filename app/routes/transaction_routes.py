@@ -8,7 +8,7 @@ from app import db
 from app.models import FinancialRecord, Company, AssetLiability
 
 # Define the blueprint
-transaction_routes = Blueprint('transaction_routes', __name__)
+transaction_routes = Blueprint('transaction_routes', __name__, template_folder="templates")
 
 # Configure Uploads
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads', 'invoices')
@@ -49,9 +49,9 @@ def add_transaction():
             return jsonify({'error': 'Description and date are required fields.'}), 400
 
         try:
-            transaction_date = datetime.strptime(date_str, '%Y-%m-%d')
+            transaction_date = datetime.strptime(date_str, '%d-%m-%Y')  # Changed format to DD-MM-YYYY
         except ValueError:
-            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+            return jsonify({'error': 'Invalid date format. Use DD-MM-YYYY.'}), 400
 
         invoice_path = None
         if file and allowed_file(file.filename):
@@ -72,7 +72,7 @@ def add_transaction():
         db.session.add(new_transaction)
         db.session.commit()
 
-        return render_template('transaction_success.html', description=description), 201
+        return render_template('transaction_success.html', description=description)
 
     except Exception as e:
         logging.error(f"Error adding transaction: {e}", exc_info=True)
@@ -96,9 +96,9 @@ def add_transaction_bulk():
                 return jsonify({"error": f"Missing required fields in transaction: {description}"}), 400
 
             try:
-                transaction_date = datetime.strptime(date_str, '%Y-%m-%d')
+                transaction_date = datetime.strptime(date_str, '%d-%m-%Y')  # Changed format to DD-MM-YYYY
             except ValueError:
-                return jsonify({"error": f"Invalid date format in transaction: {description}. Use YYYY-MM-DD."}), 400
+                return jsonify({"error": f"Invalid date format in transaction: {description}. Use DD-MM-YYYY."}), 400
 
             new_transaction = FinancialRecord(
                 date=transaction_date,
@@ -109,8 +109,8 @@ def add_transaction_bulk():
             db.session.add(new_transaction)
 
         db.session.commit()
-        return jsonify({"message": "Bulk transactions added successfully"}), 201
+        return render_template('bulk_transaction_form.html', transactions=transactions)
 
     except Exception as e:
         logging.error(f"Error adding bulk transactions: {e}", exc_info=True)
-        return jsonify({"error": "Failed to add transactions due to server error"}), 500
+        return render_template('bulk_transaction_error.html', error_message="Failed to add transactions due to server error"), 500

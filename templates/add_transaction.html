@@ -4,24 +4,21 @@
     <title>Add Transaction</title>
 </head>
 <body>
-    <h2>Add Transaction</h2>
-    <form action="/add_transaction" method="POST" enctype="multipart/form-data">
-        <label>Description:</label>
-        <input type="text" name="description" required><br>
+    <h1>Add a New Transaction</h1>
+    <form action="{{ url_for('transaction_routes.add_transaction') }}" method="POST">
+        <label for="description">Description:</label>
+        <input type="text" name="description" required>
 
-        <label>Debit:</label>
-        <input type="number" name="debit" step="0.01"><br>
+        <label for="date">Date:</label>
+        <input type="text" name="date" placeholder="DD-MM-YYYY" required>
 
-        <label>Credit:</label>
-        <input type="number" name="credit" step="0.01"><br>
+        <label for="debit">Debit:</label>
+        <input type="number" name="debit">
 
-        <label>Date:</label>
-        <input type="date" name="date" required>  <!-- ✅ Fixes Date Format -->
+        <label for="credit">Credit:</label>
+        <input type="number" name="credit">
 
-        <label>Invoice Upload:</label>
-        <input type="file" name="invoice" accept=".pdf,.jpg,.png"><br>
-
-        <button type="submit">Submit Transaction</button>
+        <button type="submit">Submit</button>
     </form>
 </body>
 </html>

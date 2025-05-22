@@ -56,7 +56,17 @@ def get_bills():
     except Exception as e:
         return jsonify({'error': f'⚠ Failed to fetch bills: {str(e)}'}), 500
 
-### 🔹 Update Bill Payment Status ###
+### 🔹 Update Bill (Render HTML for Update Page) ###
+@bill_routes.route('/update_bill/<int:bill_id>', methods=['GET'])
+def update_bill_page(bill_id):
+    """Renders the update bill form for a specific bill."""
+    bill = Bill.query.get(bill_id)
+    if not bill:
+        return jsonify({'error': '⚠ Bill not found!'}), 404
+
+    return render_template('update_bill.html', bill=bill)
+
+### 🔹 Update Bill Payment Status (Process Update) ###
 @bill_routes.route('/update_bill/<int:bill_id>', methods=['POST'])
 def update_bill(bill_id):
     """Updates the payment status of a bill."""
@@ -68,7 +78,7 @@ def update_bill(bill_id):
         bill.payment_status = request.form.get('payment_status', bill.payment_status)
         db.session.commit()
 
-        return jsonify({'message': f'✅ Bill {bill_id} updated successfully!'}), 200
+        return redirect(url_for('bill_routes.view_bills'))
     except Exception as e:
         return jsonify({'error': f'⚠ Failed to update bill: {str(e)}'}), 500
 

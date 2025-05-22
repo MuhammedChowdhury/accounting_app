@@ -1,0 +1,10 @@
+{% if transactions %}
+    <h2>Bulk Transactions Added Successfully!</h2>
+    <ul>
+        {% for txn in transactions %}
+            <li>{{ txn.description }} - ${{ txn.debit }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No transactions found.</p>
+{% endif %}

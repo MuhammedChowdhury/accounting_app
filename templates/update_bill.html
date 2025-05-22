@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Update Bill</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ddd; }
+        label, input, select { display: block; margin-bottom: 10px; width: 100%; }
+        button { padding: 10px; background: #28a745; color: #fff; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Update Bill Status</h1>
+        <form action="{{ url_for('bill_routes.update_bill', bill_id=bill.id) }}" method="POST">
+            <label for="vendor_name">Vendor:</label>
+            <input type="text" name="vendor_name" value="{{ bill.vendor_name }}" readonly>
+
+            <label for="total_amount">Total Amount:</label>
+            <input type="text" name="total_amount" value="${{ bill.total_amount }}" readonly>
+
+            <label for="payment_status">Payment Status:</label>
+            <select name="payment_status">
+                <option value="Unpaid" {% if bill.payment_status == 'Unpaid' %}selected{% endif %}>Unpaid</option>
+                <option value="Paid" {% if bill.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+            </select>
+
+            <button type="submit">Update Bill</button>
+        </form>
+    </div>
+</body>
+</html>
