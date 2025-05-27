@@ -1,14 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Home Page</title>
+    <title>Mih Chowdhury ACCOUNTING APP</title>
 </head>
 <body>
-    <h1>Welcome to My Flask App</h1>
+
+    <h1>Welcome to Mih Chowdhury ACCOUNTING APP</h1>
+
+    <!-- 🔹 Subscribe Form -->
+    <form action="/subscribe" method="POST">
+        <label for="email">Subscribe:</label>
+        <input type="email" id="email" name="email" required>
+        <button type="submit">Subscribe</button>
+    </form>
+
+    <!-- 🔹 Login Form -->
+    <form action="/login" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+
+    <!-- 🔹 Contact Details -->
+    <h2>Contact Us</h2>
+    <p>Email: info@mihcaccounting.com.au</p>
+    <p>Phone: +61 414495057</p>
+    <p>Address: Sydney, Australia</p>
+
+    <!-- 🔹 List of Routes (After Above Sections) -->
     <ul>
         {% for route in routes %}
             <li><a href="{{ route }}">{{ route }}</a></li>
         {% endfor %}
     </ul>
+
 </body>
 </html>
