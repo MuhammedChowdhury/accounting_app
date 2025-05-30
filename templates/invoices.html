@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoices</title>
+</head>
+<body>
+    <h1>Invoices</h1>
+
+    {% if invoices %}
+        <ul>
+            {% for invoice in invoices %}
+                <li>Invoice ID: {{ invoice.id }}, Amount: ${{ invoice.amount }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No invoices found.</p>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

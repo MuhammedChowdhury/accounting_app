@@ -1,13 +1,9 @@
-import sys
 import os
-from app import create_app
-
-# ✅ Ensure Python finds the 'app' module
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from app import create_app  # ✅ Import Flask app factory
 
 # ✅ Create Flask app instance
 app = create_app()
 
-# ✅ Run the application
+# ✅ Local Development Mode
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True)  # ✅ This makes Flask run on your computer

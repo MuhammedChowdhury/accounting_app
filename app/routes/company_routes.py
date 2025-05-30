@@ -1,5 +1,5 @@
 import logging
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from app import db
 from app.models import Company
 
@@ -21,14 +21,11 @@ def company_form():
             address = request.form.get('address')
 
             # Validate required fields
-            missing_fields = []
             if not name or not contact_person:
-                missing_fields.append('name/contact_person')
+                flash("Missing required fields: Name and Contact Person are mandatory.", "error")
+                return redirect(url_for('company_routes.company_form'))
 
-            if missing_fields:
-                return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
-
-            # Check if the company exists or add it
+            # Check if the company exists, otherwise add it
             company = Company.query.filter_by(name=name).first()
             if not company:
                 company = Company(
@@ -40,42 +37,42 @@ def company_form():
                 db.session.add(company)
                 db.session.commit()
 
-            # Redirect to dashboard
-            return redirect(f'/company_dashboard?company_id={company.id}')
+                flash("Company registered successfully!", "success")
+
+            return redirect(url_for('company_routes.company_dashboard', company_id=company.id))
 
         return render_template('Company_Form.html')
+
     except Exception as e:
         logging.error(f"Error in company form: {e}", exc_info=True)
-        return jsonify({'error': f'Could not process the form: {str(e)}'}), 500
+        flash(f"Could not process the form: {str(e)}", "error")
+        return redirect(url_for('company_routes.company_form'))
 
-#  company dashboard
+# Company Dashboard
 @company_routes.route('/company_dashboard', methods=['GET'])
 def company_dashboard():
     """
     Displays the company dashboard.
     """
     try:
-        # Manually query Company with ID 1 for testing
-        company_id = request.args.get('company_id')
+        company_id = request.args.get('company_id', type=int)
+        if not company_id:
+            flash("Missing company ID parameter.", "error")
+            return redirect(url_for('company_routes.select_company'))
+
         company = Company.query.filter_by(id=company_id).first()
-
-        # Add debugging test for Company ID 1
-        test_company = Company.query.filter_by(id=1).first()
-        if test_company:
-            logging.info(f"Test Company Query: {test_company.name}, ID: {test_company.id}")
-
         if not company:
-            return jsonify({'error': f'Company with ID {company_id} not found.'}), 404
+            flash(f"Company with ID {company_id} not found.", "error")
+            return redirect(url_for('company_routes.select_company'))
 
-        # Render template with company details
         return render_template('company_dashboard.html', company=company)
 
     except Exception as e:
         logging.error(f"Error in /company_dashboard route: {e}", exc_info=True)
-        return jsonify({'error': 'An unexpected error occurred.'}), 500
+        flash("An unexpected error occurred while loading the dashboard.", "error")
+        return redirect(url_for('company_routes.select_company'))
 
-
-# select company
+# Select Company
 @company_routes.route('/select_company', methods=['GET', 'POST'])
 def select_company():
     """
@@ -90,12 +87,9 @@ def select_company():
             address = request.form.get('address')
 
             # Validate required fields
-            missing_fields = []
             if not name or not abn_number:
-                missing_fields.append('Company Name/ABN Number')
-
-            if missing_fields:
-                return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
+                flash("Company Name and ABN Number are required.", "error")
+                return redirect(url_for('company_routes.select_company'))
 
             # Check if the company already exists
             company = Company.query.filter_by(name=name).first()
@@ -109,7 +103,9 @@ def select_company():
                 db.session.add(company)
                 db.session.commit()
 
-            return redirect(f'/company_dashboard?company_id={company.id}')
+                flash("Company successfully added!", "success")
+
+            return redirect(url_for('company_routes.company_dashboard', company_id=company.id))
 
         # Query existing companies for selection
         companies = Company.query.all()
@@ -117,6 +113,5 @@ def select_company():
 
     except Exception as e:
         logging.error(f"Error in select_company route: {e}", exc_info=True)
-        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
-
-
+        flash("An unexpected error occurred while selecting a company.", "error")
+        return redirect(url_for('company_routes.select_company'))

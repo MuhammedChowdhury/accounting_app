@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+import logging
+from datetime import datetime, timedelta
 from app.models import db, PurchaseOrder, Bill
 
 # Blueprint setup
@@ -9,13 +11,14 @@ def add_purchase_order():
     if request.method == 'POST':
         try:
             data = request.form
-            supplier_name = data.get('supplier_name')
-            line_items = data.get('line_items')
+            order_number = data.get('order_number')
+            supplier = data.get('supplier')
+            line_items = data.get('line_items', "").split(",")  # Ensure list format
             total_amount = data.get('total_amount')
-            shipping_address = data.get('shipping_address')
+            delivery_date = data.get('delivery_date')
 
             # Validate required fields
-            if not supplier_name or not line_items or not total_amount or not shipping_address:
+            if not all([order_number, supplier, line_items, total_amount, delivery_date]):
                 flash("Missing required fields", "error")
                 return redirect(url_for('purchase_order_routes.add_purchase_order'))
 
@@ -28,10 +31,11 @@ def add_purchase_order():
 
             # Create purchase order with initial status
             new_purchase_order = PurchaseOrder(
-                supplier_name=supplier_name,
+                order_number=order_number,
+                supplier=supplier,
                 line_items=line_items,
                 total_amount=total_amount,
-                shipping_address=shipping_address,
+                delivery_date=delivery_date,
                 status="Pending"
             )
             db.session.add(new_purchase_order)
@@ -39,7 +43,9 @@ def add_purchase_order():
 
             flash("Purchase order added successfully!", "success")
             return redirect(url_for('purchase_order_routes.view_purchase_orders'))
+
         except Exception as e:
+            logging.error(f"Error adding purchase order: {e}", exc_info=True)
             flash(f"Failed to add purchase order: {str(e)}", "error")
             return redirect(url_for('purchase_order_routes.add_purchase_order'))
 
@@ -49,8 +55,9 @@ def add_purchase_order():
 def view_purchase_orders():
     try:
         purchase_orders = PurchaseOrder.query.all()
-        return render_template('view_purchase_orders.html', purchase_orders=purchase_orders)
+        return render_template('purchase_orders.html', purchase_orders=purchase_orders)
     except Exception as e:
+        logging.error(f"Error fetching purchase orders: {e}", exc_info=True)
         flash(f"Failed to fetch purchase orders: {str(e)}", "error")
         return redirect(url_for('purchase_order_routes.view_purchase_orders'))
 
@@ -62,12 +69,15 @@ def convert_to_bill(purchase_order_id):
             flash("Purchase order not found", "error")
             return redirect(url_for('purchase_order_routes.view_purchase_orders'))
 
+        # Dynamically set due date to 30 days after purchase order creation
+        due_date = datetime.today() + timedelta(days=30)
+
         # Create bill using purchase order details
         new_bill = Bill(
-            vendor_name=purchase_order.supplier_name,
+            vendor_name=purchase_order.supplier,
             line_items=purchase_order.line_items,
             total_amount=purchase_order.total_amount,
-            due_date='2025-05-15',  # Adjust based on business rules
+            due_date=due_date.strftime("%Y-%m-%d"),
             payment_status="Unpaid"
         )
         db.session.add(new_bill)
@@ -79,5 +89,6 @@ def convert_to_bill(purchase_order_id):
         flash("Purchase order converted to bill successfully!", "success")
         return redirect(url_for('purchase_order_routes.view_purchase_orders'))
     except Exception as e:
+        logging.error(f"Error converting purchase order: {e}", exc_info=True)
         flash(f"Failed to convert purchase order: {str(e)}", "error")
         return redirect(url_for('purchase_order_routes.view_purchase_orders'))
