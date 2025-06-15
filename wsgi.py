@@ -6,4 +6,5 @@ app = create_app()
 
 # ✅ Local Development Mode
 if __name__ == "__main__":
-    app.run(debug=True)  # ✅ This makes Flask run on your computer
+    from waitress import serve  # ✅ Ensure proper indentation
+    serve(app, host="0.0.0.0", port=5000)
