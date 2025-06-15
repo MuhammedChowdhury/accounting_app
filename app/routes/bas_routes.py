@@ -16,7 +16,7 @@ def bas_form():
     return render_template('bas_report_form.html')
 
 
-@bas_routes.route('/bas', methods=['GET'])
+@bas_routes.route('/bas_result', methods=['POST'])
 def bas_report():
     """
     Generates a BAS report with GST, PAYG Withholding, PAYG Instalments, and Summary details.
@@ -43,7 +43,11 @@ def bas_report():
             date_from = datetime.strptime(date_from, '%Y-%m-%d') if date_from else None
             date_to = datetime.strptime(date_to, '%Y-%m-%d') if date_to else None
         except ValueError:
-            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+          return jsonify({"error": "Invalid date format. Use DD-MM-YYYY."}), 400
+
+        # Return the rendered HTML with the report data
+        return render_template("bas_result.html", report=response)    
+
 
         # GST Fields
         gst_query = db.session.query(FinancialRecord).filter(FinancialRecord.company_id == company_id)

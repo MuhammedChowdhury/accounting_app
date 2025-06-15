@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Accounts</h2>
+<form method="POST" action="/import_assets">
+    <textarea name="csv_data" rows="15" cols="80" placeholder="Paste your Asset data here"></textarea>
+    <button type="submit">Import Assets</button>
+</form>
+{% endblock %}

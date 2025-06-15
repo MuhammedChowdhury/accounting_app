@@ -1,0 +1,19 @@
+<!-- app/templates/bills.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bill Records</title>
+</head>
+<body>
+    <h1>🧾 Bills</h1>
+    {% if bills %}
+        <ul>
+        {% for bill in bills %}
+            <li>{{ bill.description }} — ${{ bill.amount }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No bills found.</p>
+    {% endif %}
+</body>
+</html>

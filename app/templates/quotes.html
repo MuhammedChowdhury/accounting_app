@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quotes</title>
+</head>
+<body>
+    <h1>📃 Quotes</h1>
+
+    {% if quotes %}
+        <ul>
+        {% for q in quotes %}
+            <li>Quote #: {{ q.id }} | Client: {{ q.client_name }} | Amount: ${{ q.total_amount }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No quotes found.</p>
+    {% endif %}
+</body>
+</html>

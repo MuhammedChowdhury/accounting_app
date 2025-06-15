@@ -8,19 +8,19 @@ class FinancialRecord(db.Model):
     __tablename__ = 'financial_records'
     
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     description = db.Column(db.String(255), nullable=False)
-    debit = db.Column(Numeric(10, 2), default=0.0)
-    credit = db.Column(Numeric(10, 2), default=0.0)
+    debit = db.Column(db.Float, default=0.0)
+    credit = db.Column(db.Float, default=0.0)
     type_of_expense = db.Column(db.String(50), nullable=True)
     type_of_income = db.Column(db.String(50), nullable=True)
-    net_expenses = db.Column(Numeric(10, 2), default=0.0)
-    gst_paid = db.Column(Numeric(10, 2), default=0.0)
-    net_income = db.Column(Numeric(10, 2), default=0.0)
-    gst_received = db.Column(Numeric(10, 2), default=0.0)
-    balance = db.Column(Numeric(10, 2), default=0.0)
+    net_expenses = db.Column(db.Float, default=0.0)
+    gst_paid = db.Column(db.Float, default=0.0)
+    net_income = db.Column(db.Float, default=0.0)
+    gst_received = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
     invoice = db.Column(db.String(255), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
 
     # Relationships
     company = relationship("Company", back_populates="financial_records")
@@ -30,14 +30,14 @@ class PayrollRecord(db.Model):
     __tablename__ = 'payroll_records'
     
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     employee_name = db.Column(db.String(100), nullable=False)
-    gross_wages = db.Column(Numeric(10, 2), nullable=False)
-    payg_withholding = db.Column(Numeric(10, 2), default=0.0)
-    superannuation = db.Column(Numeric(10, 2), default=0.0)
-    deductions = db.Column(Numeric(10, 2), default=0.0)
-    net_pay = db.Column(Numeric(10, 2), nullable=False)
+    gross_wages = db.Column(db.Float, nullable=False)
+    payg_withholding = db.Column(db.Float, default=0.0)
+    superannuation = db.Column(db.Float, default=0.0)
+    deductions = db.Column(db.Float, default=0.0)
+    net_pay = db.Column(db.Float, nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
 
     # Relationships
     company = relationship("Company", back_populates="payroll_records")
@@ -52,6 +52,7 @@ class AssetLiability(db.Model):
     subcategory = db.Column(db.String(50), nullable=False)
     amount = db.Column(Numeric(10, 2), nullable=False, default=0.0)
 
+    # Explicitly named Check Constraint
     __table_args__ = (
         CheckConstraint("category IN ('Asset', 'Liability')", name="ck_asset_liability_category"),
     )
@@ -78,7 +79,7 @@ class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(255), nullable=False)
     line_items = db.Column(db.Text, nullable=False)
-    total_amount = db.Column(Numeric(10, 2), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
     validity_period = db.Column(db.Date, nullable=False)
 
 # Model: Invoice
@@ -86,45 +87,33 @@ class Invoice(db.Model):
     __tablename__ = 'invoices'
     
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
     client_name = db.Column(db.String(255), nullable=False)
     line_items = db.Column(db.Text, nullable=False)
-    total_amount = db.Column(Numeric(10, 2), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
     due_date = db.Column(db.Date, nullable=False)
     payment_status = db.Column(db.String(50), default='Pending')
-
-    # Relationships
-    company = relationship("Company", back_populates="invoices")
 
 # Model: PurchaseOrder
 class PurchaseOrder(db.Model):
     __tablename__ = 'purchase_orders'
     
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
     supplier_name = db.Column(db.String(255), nullable=False)
     line_items = db.Column(db.Text, nullable=False)
-    total_amount = db.Column(Numeric(10, 2), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
     shipping_address = db.Column(db.Text, nullable=False)
     payment_status = db.Column(db.String(50), default='Pending')
-
-    # Relationships
-    company = relationship("Company", back_populates="purchase_orders")
 
 # Model: Bill
 class Bill(db.Model):
     __tablename__ = 'bills'
     
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
     vendor_name = db.Column(db.String(255), nullable=False)
     line_items = db.Column(db.Text, nullable=False)
-    total_amount = db.Column(Numeric(10, 2), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
     due_date = db.Column(db.Date, nullable=False)
     payment_status = db.Column(db.String(50), default='Unpaid')
-
-    # Relationships
-    company = relationship("Company", back_populates="bills")
 
 # Model: Company
 class Company(db.Model):
@@ -145,15 +134,11 @@ class Company(db.Model):
     payroll_records = relationship("PayrollRecord", back_populates="company", lazy=True)
     assets_liabilities = relationship("AssetLiability", back_populates="company", lazy=True)
     equities = relationship("Equity", back_populates="company", lazy=True)
-    invoices = relationship("Invoice", back_populates="company", lazy=True)
-    purchase_orders = relationship("PurchaseOrder", back_populates="company", lazy=True)
-    bills = relationship("Bill", back_populates="company", lazy=True)
 
-# Model: Sale
+
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(Numeric(10, 2), nullable=False)
+    price = db.Column(db.Float, nullable=False)
     sale_date = db.Column(db.DateTime, default=datetime.utcnow)
-

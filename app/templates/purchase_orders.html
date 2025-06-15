@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Purchase Orders</title>
+</head>
+<body>
+    <h1>📦 Purchase Orders</h1>
+
+    {% if purchase_orders %}
+        <ul>
+        {% for po in purchase_orders %}
+            <li>
+                Order #: {{ po.order_number }} | Supplier: {{ po.supplier }} | Amount: ${{ po.total_amount }}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No purchase orders available.</p>
+    {% endif %}
+</body>
+</html>

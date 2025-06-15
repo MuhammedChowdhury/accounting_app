@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BAS Report Result</title>
+</head>
+<body>
+    <h1>BAS Report for {{ report.metadata.company_name }}</h1>
+    <p>Reporting Period: {{ report.metadata.reporting_period.from }} to {{ report.metadata.reporting_period.to }}</p>
+
+    <h2>GST</h2>
+    <ul>
+        <li>G1 Total Sales: {{ report.GST.G1_Total_Sales }}</li>
+        <li>G2 Export Sales: {{ report.GST.G2_Export_Sales }}</li>
+        <li>G3 GST-Free Sales: {{ report.GST.G3_Other_GST_Free_Sales }}</li>
+        <li>1A GST on Sales: {{ report.GST['1A_GST_on_Sales'] }}</li>
+        <li>1B GST on Purchases: {{ report.GST['1B_GST_on_Purchases'] }}</li>
+    </ul>
+
+    <h2>PAYG Withholding</h2>
+    <ul>
+        <li>W1 Total Wages: {{ report.PAYG_Withholding.W1_Total_Wages }}</li>
+        <li>W2 PAYG Withholding: {{ report.PAYG_Withholding.W2_PAYG_Withholding }}</li>
+    </ul>
+
+    <h2>PAYG Instalments</h2>
+    <ul>
+        <li>T1 PAYG Income: {{ report.PAYG_Instalments.T1_PAYG_Income }}</li>
+        <li>T11 Instalment Amount: {{ report.PAYG_Instalments.T11_Instalment_Amount }}</li>
+    </ul>
+
+    <h2>Summary</h2>
+    <ul>
+        <li>GST Payable: {{ report.Summary.GST_Payable }}</li>
+        <li>PAYG Withholding: {{ report.Summary.PAYG_Withholding }}</li>
+        <li>Net Amount Payable: {{ report.Summary.Net_Amount_Payable }}</li>
+    </ul>
+
+    <a href="{{ url_for('bas_routes.bas_form') }}">← Back to BAS Form</a>
+</body>
+</html>

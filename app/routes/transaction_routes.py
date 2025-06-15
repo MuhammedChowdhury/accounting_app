@@ -6,6 +6,10 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from app import db
 from app.models import FinancialRecord, Company, AssetLiability
+from io import StringIO
+import csv
+
+
 
 # Define the blueprint
 transaction_routes = Blueprint('transaction_routes', __name__, template_folder="templates")
@@ -80,37 +84,33 @@ def add_transaction():
 
 # ✅ Route: Bulk Import Transactions (POST)
 @transaction_routes.route('/add_transaction_bulk', methods=['POST'])
-def add_transaction_bulk():
+def process_transaction_bulk():
     try:
-        transactions = request.json.get('transactions', [])
-        if not transactions:
-            return jsonify({"error": "No transactions provided"}), 400
+        csv_raw = request.form.get('csv_data', '').strip()
+        if not csv_raw:
+            return render_template("bulk_transaction_error.html", error_message="No CSV data provided."), 400
 
-        for txn in transactions:
-            description = txn.get("description")
-            debit = txn.get("debit", 0.0)
-            credit = txn.get("credit", 0.0)
-            date_str = txn.get("date")
+        reader = csv.DictReader(StringIO(csv_raw))
+        transactions = []
 
-            if not description or not date_str:
-                return jsonify({"error": f"Missing required fields in transaction: {description}"}), 400
-
+        for row in reader:
             try:
-                transaction_date = datetime.strptime(date_str, '%d-%m-%Y')  # Changed format to DD-MM-YYYY
-            except ValueError:
-                return jsonify({"error": f"Invalid date format in transaction: {description}. Use DD-MM-YYYY."}), 400
-
-            new_transaction = FinancialRecord(
-                date=transaction_date,
-                description=description,
-                debit=float(debit),
-                credit=float(credit)
-            )
-            db.session.add(new_transaction)
+                transaction = FinancialRecord(
+                    date=datetime.strptime(row["Date"], "%d-%m-%Y"),
+                    description=row["Description"],
+                    debit=float(row.get("Debit", 0) or 0),
+                    credit=float(row.get("Credit", 0) or 0),
+                    type_of_expense=row.get("Type of Expense"),
+                    type_of_income=row.get("Type of Income")
+                )
+                db.session.add(transaction)
+                transactions.append(transaction)
+            except Exception as e:
+                logging.error(f"Error processing row {row}: {e}", exc_info=True)
 
         db.session.commit()
         return render_template('bulk_transaction_form.html', transactions=transactions)
 
     except Exception as e:
-        logging.error(f"Error adding bulk transactions: {e}", exc_info=True)
-        return render_template('bulk_transaction_error.html', error_message="Failed to add transactions due to server error"), 500
+        logging.error(f"Bulk transaction upload failed: {e}", exc_info=True)
+        return render_template('bulk_transaction_error.html', error_message="Bulk upload failed."), 500

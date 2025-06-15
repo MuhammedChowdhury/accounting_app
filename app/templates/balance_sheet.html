@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Balance Sheet</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        h1, h2 { color: #333; }
+        table { border-collapse: collapse; width: 100%; background-color: white; }
+        th, td { padding: 10px; border: 1px solid black; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Balance Sheet</h1>
+    <h2>Company: {{ company_details.name }} (ABN: {{ company_details.abn }})</h2>
+    <p>Address: {{ company_details.address }}</p>
+    <h3>Balance Sheet for Period: {{ company_details.period.from }} - {{ company_details.period.to }}</h3>
+
+    <h3>Assets</h3>
+    <table>
+        <tr><th>Category</th><th>Amount</th></tr>
+        {% for asset in assets %}
+        <tr>
+            <td>{{ asset.subcategory }}</td>
+            <td>${{ "{:,.2f}".format(asset.amount) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p><strong>Total Assets:</strong> ${{ "{:,.2f}".format(total_assets) }}</p>
+
+    <h3>Liabilities</h3>
+    <table>
+        <tr><th>Category</th><th>Amount</th></tr>
+        {% for liability in liabilities %}
+        <tr>
+            <td>{{ liability.subcategory }}</td>
+            <td>${{ "{:,.2f}".format(liability.amount) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p><strong>Total Liabilities:</strong> ${{ "{:,.2f}".format(total_liabilities) }}</p>
+
+    <h3>Equity</h3>
+    <p><strong>Calculated Equity:</strong> ${{ "{:,.2f}".format(equity) }}</p>
+    <p>(Derived as Total Assets - Total Liabilities)</p>
+</body>
+</html>

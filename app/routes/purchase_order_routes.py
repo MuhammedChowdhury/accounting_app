@@ -58,8 +58,8 @@ def view_purchase_orders():
         return render_template('purchase_orders.html', purchase_orders=purchase_orders)
     except Exception as e:
         logging.error(f"Error fetching purchase orders: {e}", exc_info=True)
-        flash(f"Failed to fetch purchase orders: {str(e)}", "error")
-        return redirect(url_for('purchase_order_routes.view_purchase_orders'))
+        return render_template("error.html", message="Could not load purchase orders.")
+
 
 @purchase_order_routes.route('/convert_to_bill/<int:purchase_order_id>', methods=['POST'])
 def convert_to_bill(purchase_order_id):
@@ -89,6 +89,7 @@ def convert_to_bill(purchase_order_id):
         flash("Purchase order converted to bill successfully!", "success")
         return redirect(url_for('purchase_order_routes.view_purchase_orders'))
     except Exception as e:
-        logging.error(f"Error converting purchase order: {e}", exc_info=True)
-        flash(f"Failed to convert purchase order: {str(e)}", "error")
-        return redirect(url_for('purchase_order_routes.view_purchase_orders'))
+     logging.error(f"Error fetching purchase orders: {e}", exc_info=True)
+     return render_template("error.html", message="Could not load purchase orders.")
+
+        

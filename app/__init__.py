@@ -19,8 +19,12 @@ def create_app():
 
     # ✅ Database Configuration
     basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", f"sqlite:///{os.path.join(basedir, 'instance', 'app.db')}")
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    instance_dir = os.path.join(basedir, '..', 'instance')
+    os.makedirs(instance_dir, exist_ok=True)
+
+    default_sqlite_path = f"sqlite:///{os.path.abspath(os.path.join(instance_dir, 'app.db'))}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", default_sqlite_path)
+
 
     # ✅ Initialize Flask Extensions
     db.init_app(app)

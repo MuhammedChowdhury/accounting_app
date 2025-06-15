@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Cash Flow Statement Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ddd; }
+        label, input { display: block; margin-bottom: 10px; width: 100%; }
+        button { padding: 10px; background: #28a745; color: #fff; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generate Cash Flow Statement</h1>
+        <form action="{{ url_for('cash_flow_routes.cash_flow') }}" method="POST">
+            <label for="company_id">Company ID:</label>
+            <input type="text" name="company_id" required>
+
+            <label for="date_from">Start Date:</label>
+            <input type="date" name="date_from" required>
+
+            <label for="date_to">End Date:</label>
+            <input type="date" name="date_to" required>
+
+            <button type="submit">Generate</button>
+        </form>
+    </div>
+</body>
+</html>

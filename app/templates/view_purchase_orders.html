@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Purchase Orders</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; background-color: white; }
+        th, td { padding: 10px; border: 1px solid black; }
+        button { padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button.delete { background-color: #e74c3c; }
+        button:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <h1>All Purchase Orders</h1>
+    <table border="1">
+        <tr>
+            <th>Supplier Name</th>
+            <th>Line Items</th>
+            <th>Total Amount</th>
+            <th>Shipping Address</th>
+            <th>Payment Status</th>
+            <th>Actions</th>
+        </tr>
+        {% for po in purchase_orders %}
+        <tr>
+            <td>{{ po.supplier_name }}</td>
+            <td>{{ po.line_items }}</td>
+            <td>${{ po.total_amount }}</td>
+            <td>{{ po.shipping_address }}</td>
+            <td>{{ po.payment_status }}</td>
+            <td>
+                <!-- Convert to Bill Button -->
+                <form action="/purchase_order_routes/convert_to_bill/{{ po.id }}" method="POST" style="display:inline;">
+                    <button type="submit">Convert to Bill</button>
+                </form>
+                
+                <!-- Delete Purchase Order Button -->
+                <form action="/purchase_order_routes/delete_purchase_order/{{ po.id }}" method="POST" style="display:inline;">
+                    <button type="submit" class="delete">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/purchase_order_routes/add_purchase_order">Add a New Purchase Order</a>
+</body>
+</html>

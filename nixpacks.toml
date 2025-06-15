@@ -1,2 +1,0 @@
-[pkgs]
-apt = ["pkg-config", "gcc", "mariadb-client"]
