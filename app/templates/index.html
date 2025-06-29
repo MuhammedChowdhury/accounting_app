@@ -1,40 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Mih Chowdhury ACCOUNTING APP</title>
+  <meta charset="UTF-8">
+  <title>Mih Chowdhury Accounting App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      color: #333;
+    }
+
+    header {
+      background-color: #007BFF;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .welcome {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .card a {
+      text-decoration: none;
+      color: #007BFF;
+      font-weight: bold;
+    }
+
+    form {
+      margin: 20px auto;
+      text-align: center;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 40px;
+      padding: 20px;
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>Mih Chowdhury Accounting App</h1>
+    {% if current_user.is_authenticated %}
+      <p>Welcome, {{ current_user.username }}!</p>
+    {% endif %}
+  </header>
 
-    <h1>Welcome to Mih Chowdhury ACCOUNTING APP</h1>
+  <div class="container">
+    <div class="welcome">
+      <h2>Dashboard</h2>
+      <p>Use the links below to access app features.</p>
+    </div>
 
-    <!-- 🔹 Subscribe Form -->
-    <form action="/subscribe" method="POST">
-        <label for="email">Subscribe:</label>
-        <input type="email" id="email" name="email" required>
-        <button type="submit">Subscribe</button>
-    </form>
-
-    <!-- 🔹 Login Form -->
-    <form action="/login" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <button type="submit">Login</button>
-    </form>
-
-    <!-- 🔹 Contact Details -->
-    <h2>Contact Us</h2>
-    <p>Email: info@mihcaccounting.com.au</p>
-    <p>Phone: +61 414495057</p>
-    <p>Address: Sydney, Australia</p>
-
-    <!-- 🔹 List of Routes (After Above Sections) -->
-    <ul>
+    {% if current_user.is_authenticated %}
+      <div class="grid">
         {% for route in routes %}
-            <li><a href="{{ route }}">{{ route }}</a></li>
+          <div class="card">
+            <a href="{{ route }}">{{ route }}</a>
+          </div>
         {% endfor %}
-    </ul>
+        <div class="card"><a href="{{ url_for('auth_routes.logout') }}">Log Out</a></div>
+      </div>
+    {% else %}
+      <p style="text-align:center;">Please log in to view available features.</p>
+    {% endif %}
 
+    <form action="/subscribe" method="POST">
+      <label for="email">Subscribe for updates:</label><br>
+      <input type="email" id="email" name="email" required>
+      <button type="submit">Subscribe</button>
+    </form>
+  </div>
+
+  <footer>
+    Contact: info@mihcaccounting.com.au | +61 414495057 | Sydney, Australia
+  </footer>
 </body>
 </html>

@@ -1,18 +1,9 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from a .env file, if available
-load_dotenv()
+load_dotenv()  # this must be above the Config class
 
 class Config:
-    # Securely load secret key from environment variables, or use a fallback key
-    SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-key')  # Replace with a strong key in production
-
-    # Get the base directory where this file is located
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-    # Set database URI — change this if you're switching from SQLite to MySQL
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'database.db')}"
-
-    # Prevent SQLAlchemy from tracking object changes to save resources
+    SECRET_KEY = os.getenv("SECRET_KEY", "fallback")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False

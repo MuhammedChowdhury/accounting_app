@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Log In – Mih Chowdhury Accounting App</title>
+  <title>Register – Mih Chowdhury Accounting App</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -68,13 +68,13 @@
 </head>
 <body>
   <div class="form-box">
-    <h2>Log In</h2>
+    <h2>Create an Account</h2>
     <form method="POST">
-      <input type="text" name="username" placeholder="Username" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <button type="submit">Log In</button>
+      <input type="text" name="username" placeholder="Choose a username" required>
+      <input type="password" name="password" placeholder="Create a password" required>
+      <button type="submit">Register</button>
     </form>
-    <p>Don't have an account? <a href="{{ url_for('auth_routes.register') }}">Register here</a></p>
+    <p>Already have an account? <a href="{{ url_for('auth_routes.login') }}">Log in here</a></p>
   </div>
 </body>
 </html>

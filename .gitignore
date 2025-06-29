@@ -1,3 +1,8 @@
-"venv/" 
-"venv/" 
-"__pycache__/\n*.pyc" 
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+instance/
+.env
+.DS_Store

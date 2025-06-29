@@ -30,16 +30,14 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    login_manager.login_view = "login"
+    login_manager.login_view = "auth_routes.login"
 
     # ✅ Define User Model
-    class User(UserMixin):
-        def __init__(self, id):
-            self.id = id
+    from app.models import User as DBUser
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User(user_id)
+        return DBUser.query.get(int(user_id))
 
     # ✅ Register Blueprints (No Duplicate Imports)
     from app.routes.bas_routes import bas_routes
@@ -55,6 +53,7 @@ def create_app():
     from app.routes.report_routes import report_routes
     from app.routes.transaction_routes import transaction_routes
     from app.routes.auth_routes import auth_routes
+    from app.routes.subscribe_routes import subscribe_routes
 
     app.register_blueprint(bas_routes)
     app.register_blueprint(bill_routes)
@@ -69,36 +68,33 @@ def create_app():
     app.register_blueprint(report_routes)
     app.register_blueprint(transaction_routes)
     app.register_blueprint(auth_routes)
+    app.register_blueprint(subscribe_routes)
 
     # ✅ Root Route (Restricted)
-    @app.route('/')
     @app.route('/index')
     @login_required
     def home():
         routes = [rule.rule for rule in app.url_map.iter_rules() if "static" not in rule.rule]
         return render_template("index.html", routes=routes)
 
-    # ✅ Login Route
-    @app.route("/login", methods=["GET", "POST"])
-    def login():
-        if request.method == "POST":
-            username = request.form.get("username")
-            password = request.form.get("password")
+   
 
-            if username == "admin" and password == "password123":
-                user = User(id=username)
-                login_user(user)
-                return redirect(url_for("home"))
-
-            return "Invalid credentials", 401
-
-        return render_template("login.html")
-
-    # ✅ Logout Route
+     # ✅ Logout Route
     @app.route("/logout")
     @login_required
     def logout():
         logout_user()
-        return redirect(url_for("login"))
+        return redirect(url_for("auth_routes.login"))
+
+    # ✅ Landing Route (for all users)
+    @app.route("/")
+    def index():
+        return render_template("welcome.html")
+   
+      
+
+    print("\n🔍 Registered Routes:")
+    for rule in app.url_map.iter_rules():
+        print(rule.endpoint, "→", rule.rule)
 
     return app
