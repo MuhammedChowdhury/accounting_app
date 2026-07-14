@@ -3,10 +3,7 @@ import logging
 from flask import Flask, render_template, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-import pymysql
-
-pymysql.install_as_MySQLdb()
+from flask_login import LoginManager, login_required, logout_user
 
 # ✅ Initialize Extensions
 db = SQLAlchemy()
@@ -17,14 +14,15 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 
-    # ✅ Database Configuration
+    # ✅ Safe Local Database Path Configuration
     basedir = os.path.abspath(os.path.dirname(__file__))
     instance_dir = os.path.join(basedir, '..', 'instance')
     os.makedirs(instance_dir, exist_ok=True)
 
+    # 🔒 FORCED TO SECURE LOCAL SQLITE FILE - NO MORE DEPLOYMENT HIJACKS
     default_sqlite_path = f"sqlite:///{os.path.abspath(os.path.join(instance_dir, 'app.db'))}"
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", default_sqlite_path)
-
+    app.config['SQLALCHEMY_DATABASE_URI'] = default_sqlite_path
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # ✅ Initialize Flask Extensions
     db.init_app(app)
@@ -77,8 +75,6 @@ def create_app():
         routes = [rule.rule for rule in app.url_map.iter_rules() if "static" not in rule.rule]
         return render_template("index.html", routes=routes)
 
-   
-
      # ✅ Logout Route
     @app.route("/logout")
     @login_required
@@ -90,8 +86,6 @@ def create_app():
     @app.route("/")
     def index():
         return render_template("welcome.html")
-   
-      
 
     print("\n🔍 Registered Routes:")
     for rule in app.url_map.iter_rules():
