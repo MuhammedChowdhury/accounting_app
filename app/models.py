@@ -166,3 +166,41 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
+
+# =========================================================================
+# 💼 STP PHASE 2 COMPLIANT PAYROLL STRUCTURES
+# =========================================================================
+
+class Employee(db.Model):
+    __tablename__ = "employee"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    tfn = db.Column(db.String(20), nullable=True)
+    employment_type = db.Column(db.String(50), default="Full-Time")
+    tfn_declaration_status = db.Column(db.String(50), default="Submitted")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class PayrollRun(db.Model):
+    __tablename__ = "payroll_run"
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey("employee.id"), nullable=False)
+    pay_period_start = db.Column(db.String(50), nullable=False)
+    pay_period_end = db.Column(db.String(50), nullable=False)
+    
+    # Gross and withholding mapping metrics
+    gross_wages = db.Column(db.Float, default=0.0, nullable=False)
+    payg_withholding = db.Column(db.Float, default=0.0, nullable=False)
+    super_guarantee = db.Column(db.Float, default=0.0, nullable=False)
+    net_pay = db.Column(db.Float, default=0.0, nullable=False)
+    
+    # Statutory Single Touch Payroll tracking
+    stp_status = db.Column(db.String(50), default="Pending Submission")
+    stp_submission_id = db.Column(db.String(100), nullable=True)
+    ato_response_timestamp = db.Column(db.DateTime, nullable=True)
+    digital_declaration_signed_by = db.Column(db.String(150), nullable=True)
+
+    employee = db.relationship("Employee", backref="pay_records")
+
+PayrollRecord = PayrollRun
