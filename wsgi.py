@@ -1,11 +1,9 @@
+import os
 from app import create_app
 
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
-
-
-with app.app_context():
-    for rule in app.url_map.iter_rules():
-        print(f"Endpoint: {rule.endpoint} -> URL: {rule.rule}")
+    # 🔒 PRODUCTION PORT BINDING: Pull Render's port (10000) or fallback to local 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
