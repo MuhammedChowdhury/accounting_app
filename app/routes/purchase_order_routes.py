@@ -1,95 +1,50 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 import logging
-from datetime import datetime, timedelta
-from app.models import db, PurchaseOrder, Bill
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
+from app import db
+from app.models import Company, PurchaseOrder
 
-# Blueprint setup
 purchase_order_routes = Blueprint('purchase_order_routes', __name__)
 
 @purchase_order_routes.route('/add_purchase_order', methods=['GET', 'POST'])
 def add_purchase_order():
-    if request.method == 'POST':
-        try:
-            data = request.form
-            order_number = data.get('order_number')
-            supplier = data.get('supplier')
-            line_items = data.get('line_items', "").split(",")  # Ensure list format
-            total_amount = data.get('total_amount')
-            delivery_date = data.get('delivery_date')
+    """Renders the PO issue layout or processes submissions securely."""
+    try:
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
+        company = db.session.get(Company, company_id)
 
-            # Validate required fields
-            if not all([order_number, supplier, line_items, total_amount, delivery_date]):
-                flash("Missing required fields", "error")
-                return redirect(url_for('purchase_order_routes.add_purchase_order'))
+        if request.method == 'POST':
+            supplier_name = request.form.get('supplier_name')
+            line_items = request.form.get('line_items')
+            total_amount = request.form.get('total_amount', type=float, default=0.0)
+            shipping_address = request.form.get('shipping_address')
 
-            # Convert total amount safely
-            try:
-                total_amount = float(total_amount)
-            except ValueError:
-                flash("Invalid total amount format", "error")
-                return redirect(url_for('purchase_order_routes.add_purchase_order'))
+            if supplier_name and total_amount:
+                new_po = PurchaseOrder(
+                    supplier_name=supplier_name,
+                    line_items=line_items,
+                    total_amount=total_amount,
+                    shipping_address=shipping_address,
+                    payment_status='Pending'
+                )
+                db.session.add(new_po)
+                db.session.commit()
+                return redirect(url_for('purchase_order_routes.view_purchase_orders', company_id=company_id))
 
-            # Create purchase order with initial status
-            new_purchase_order = PurchaseOrder(
-                order_number=order_number,
-                supplier=supplier,
-                line_items=line_items,
-                total_amount=total_amount,
-                delivery_date=delivery_date,
-                status="Pending"
-            )
-            db.session.add(new_purchase_order)
-            db.session.commit()
-
-            flash("Purchase order added successfully!", "success")
-            return redirect(url_for('purchase_order_routes.view_purchase_orders'))
-
-        except Exception as e:
-            logging.error(f"Error adding purchase order: {e}", exc_info=True)
-            flash(f"Failed to add purchase order: {str(e)}", "error")
-            return redirect(url_for('purchase_order_routes.add_purchase_order'))
-
-    return render_template('add_purchase_order.html')
+        return render_template('add_purchase_order.html', company=company)
+    except Exception as e:
+        logging.error(f"PO initialization engine failure: {e}", exc_info=True)
+        return jsonify({'error': 'Procurement engine failure.'}), 500
 
 @purchase_order_routes.route('/view_purchase_orders', methods=['GET'])
 def view_purchase_orders():
+    """Fetches procurement files logged in system memory maps."""
     try:
-        purchase_orders = PurchaseOrder.query.all()
-        return render_template('purchase_orders.html', purchase_orders=purchase_orders)
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        company = db.session.get(Company, company_id)
+        purchase_orders = db.session.query(PurchaseOrder).all()
+        return render_template('view_purchase_orders.html', company=company, purchase_orders=purchase_orders)
     except Exception as e:
-        logging.error(f"Error fetching purchase orders: {e}", exc_info=True)
-        return render_template("error.html", message="Could not load purchase orders.")
-
-
-@purchase_order_routes.route('/convert_to_bill/<int:purchase_order_id>', methods=['POST'])
-def convert_to_bill(purchase_order_id):
-    try:
-        purchase_order = PurchaseOrder.query.get(purchase_order_id)
-        if not purchase_order:
-            flash("Purchase order not found", "error")
-            return redirect(url_for('purchase_order_routes.view_purchase_orders'))
-
-        # Dynamically set due date to 30 days after purchase order creation
-        due_date = datetime.today() + timedelta(days=30)
-
-        # Create bill using purchase order details
-        new_bill = Bill(
-            vendor_name=purchase_order.supplier,
-            line_items=purchase_order.line_items,
-            total_amount=purchase_order.total_amount,
-            due_date=due_date.strftime("%Y-%m-%d"),
-            payment_status="Unpaid"
-        )
-        db.session.add(new_bill)
-
-        # Mark purchase order as converted
-        purchase_order.status = "Converted to Bill"
-        db.session.commit()
-
-        flash("Purchase order converted to bill successfully!", "success")
-        return redirect(url_for('purchase_order_routes.view_purchase_orders'))
-    except Exception as e:
-     logging.error(f"Error fetching purchase orders: {e}", exc_info=True)
-     return render_template("error.html", message="Could not load purchase orders.")
-
-        
+        logging.error(f"PO history extraction error: {e}", exc_info=True)
+        return jsonify({'error': 'Procurement database connection failure.'}), 500

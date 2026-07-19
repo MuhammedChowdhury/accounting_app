@@ -1,120 +1,91 @@
 import logging
-from flask import Blueprint, jsonify, request, render_template
-from datetime import datetime
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
 from app import db
-from app.models import PayrollRecord
+from app.models import Company, Employee, PayrollRun
 
 payroll_routes = Blueprint('payroll_routes', __name__)
 
-@payroll_routes.route('/add_payroll_form', methods=['GET'])
-def add_payroll_form():
-    """
-    Render the form for adding a payroll record.
-    """
-    return render_template('add_payroll.html')
-
-@payroll_routes.route('/add_payroll', methods=['POST'])
-def add_payroll():
+@payroll_routes.route('/payroll', methods=['GET', 'POST'])
+def payroll_dashboard():
+    """Manages firm payroll cycles, active employee listings, and STP calculations."""
     try:
-        data = request.form  # Accepting form data
-        employee_name = data.get('employee_name')
-        gross_wages = data.get('gross_wages')
-        date_str = data.get('date')
-        payg_withholding = data.get('payg_withholding', 0.0)
-        superannuation = data.get('superannuation', 0.0)
-        deductions = data.get('deductions', 0.0)
-        company_id = data.get('company_id', 1)
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
 
-        if not employee_name or not gross_wages or not date_str:
-            logging.error(f"Invalid input data: {data}")
-            return render_template('error.html', error_message="Employee name, gross wages, and date are required."), 400
+        company = db.session.get(Company, company_id)
+        if not company:
+            return redirect(url_for('company_routes.select_company'))
 
-        # Validate gross wages
-        try:
-            gross_wages = float(gross_wages)
-        except ValueError:
-            return render_template('error.html', error_message="Gross wages must be a positive number."), 400
+        session['company_id'] = company.id
 
-        if gross_wages <= 0:
-            return render_template('error.html', error_message="Gross wages must be greater than zero."), 400
+        if request.method == 'POST':
+            # Run payroll row execution calculations
+            employee_id = request.form.get('employee_id', type=int)
+            start_date = request.form.get('pay_period_start')
+            end_date = request.form.get('pay_period_end')
+            gross_wages = request.form.get('gross_wages', type=float, default=0.0)
 
-        # Validate and parse date
-        try:
-            payroll_date = datetime.strptime(date_str, '%Y-%m-%d')
-        except ValueError:
-            return render_template('error.html', error_message="Invalid date format. Use YYYY-MM-DD."), 400
+            if not employee_id or not start_date or not end_date:
+                return jsonify({'error': 'Missing mandatory calculation values.'}), 400
 
-        # Calculate net pay
-        net_pay = gross_wages - (float(payg_withholding) + float(deductions))
+            super_guarantee = round(gross_wages * 0.12, 2)
+            payg_withholding = round(gross_wages * 0.15, 2)
+            net_pay = round(gross_wages - payg_withholding, 2)
 
-        # Create payroll record
-        new_record = PayrollRecord(
-            date=payroll_date,
-            employee_name=employee_name,
-            gross_wages=gross_wages,
-            payg_withholding=float(payg_withholding),
-            superannuation=float(superannuation),
-            deductions=float(deductions),
-            net_pay=net_pay,
-            company_id=company_id
-        )
-        db.session.add(new_record)
-        db.session.commit()
+            new_run = PayrollRun(
+                employee_id=employee_id,
+                pay_period_start=start_date,
+                pay_period_end=end_date,
+                gross_wages=gross_wages,
+                payg_withholding=payg_withholding,
+                super_guarantee=super_guarantee,
+                net_pay=net_pay,
+                stp_status="Pending Submission"
+            )
+            db.session.add(new_run)
+            db.session.commit()
+            return redirect(url_for('payroll_routes.payroll_dashboard', company_id=company_id))
 
-        logging.info(f"Payroll record added for {employee_name}.")
-        return render_template('success.html', message="Payroll record added successfully!")
-
-    except Exception as e:
-        logging.error(f"Error adding payroll record: {str(e)}", exc_info=True)
-        return render_template('error.html', error_message=f"Failed to add payroll record: {str(e)}"), 500
-
-@payroll_routes.route('/view_payroll_records', methods=['GET'])
-def view_payroll_records():
-    try:
-        payroll_records = PayrollRecord.query.all()
-        if not payroll_records:
-            logging.info("No payroll records found.")
-            return render_template('view_payroll_records.html', payroll_records=[])
-
-        records = [
-            {
-                "id": record.id,
-                "date": record.date.strftime('%Y-%m-%d') if record.date else None,
-                "employee_name": record.employee_name,
-                "gross_wages": record.gross_wages,
-                "payg_withholding": record.payg_withholding,
-                "superannuation": record.superannuation,
-                "deductions": record.deductions,
-                "net_pay": record.net_pay,
-                "company_id": record.company_id
-            }
-            for record in payroll_records
-        ]
-
-        logging.info(f"Fetched {len(records)} payroll records successfully.")
-        return render_template('view_payroll_records.html', payroll_records=records)
-
-    except Exception as e:
-        logging.error(f"Error fetching payroll records: {str(e)}", exc_info=True)
-        return render_template('error.html', error_message=f"Failed to fetch payroll records: {str(e)}"), 500
-
-@payroll_routes.route('/payslip/<int:record_id>', methods=['GET'])
-def generate_payslip(record_id):
-    try:
-        record = PayrollRecord.query.get(record_id)
-        if not record:
-            return render_template('error.html', error_message="Payslip not found"), 404
+        employees = db.session.query(Employee).all()
+        payroll_history = db.session.query(PayrollRun).all()
 
         return render_template(
-            'payslip.html',
-            employee_name=record.employee_name,
-            payroll_date=record.date.strftime('%Y-%m-%d'),
-            gross_wages=record.gross_wages,
-            payg_withholding=record.payg_withholding,
-            superannuation=record.superannuation,
-            deductions=record.deductions,
-            net_pay=record.net_pay
+            'payroll.html',
+            company=company,
+            employees=employees,
+            payroll_history=payroll_history
         )
     except Exception as e:
-        logging.error(f"Error generating payslip: {e}", exc_info=True)
-        return render_template('error.html', error_message="Failed to generate payslip"), 500
+        logging.error(f"Payroll rendering error: {e}", exc_info=True)
+        return jsonify({'error': 'Initialization failed.'}), 500
+
+
+@payroll_routes.route('/add_employee', methods=['GET', 'POST'])
+def add_employee():
+    """⚠️ NEW SEPARATE LINK PATH: Adds fresh staff profiles into the firm database."""
+    try:
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        company = db.session.get(Company, company_id)
+
+        if request.method == 'POST':
+            name = request.form.get('name')
+            tfn = request.form.get('tfn')
+            emp_type = request.form.get('employment_type', 'Full-Time')
+            tfn_status = request.form.get('tfn_declaration_status', 'Submitted')
+
+            if name:
+                new_staff = Employee(
+                    name=name,
+                    tfn=tfn,
+                    employment_type=emp_type,
+                    tfn_declaration_status=tfn_status
+                )
+                db.session.add(new_staff)
+                db.session.commit()
+            return redirect(url_for('payroll_routes.payroll_dashboard', company_id=company_id))
+
+        return render_template('add_employee.html', company=company)
+    except Exception as e:
+        logging.error(f"Error adding worker rows: {e}", exc_info=True)
+        return jsonify({'error': 'Could not save profile.'}), 500

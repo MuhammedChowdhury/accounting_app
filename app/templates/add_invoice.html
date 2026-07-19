@@ -1,27 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Add Invoice</title>
-</head>
-<body>
-    <h1>Add New Invoice</h1>
-    <form action="{{ url_for('invoice_routes.add_invoice') }}" method="POST">
-        <label>Invoice Number:</label>
-        <input type="text" name="invoice_number" required><br>
-        
-        <label>Client Name:</label>
-        <input type="text" name="client_name" required><br>
-        
-        <label>Supplier Name:</label>
-        <input type="text" name="supplier_name" required><br>
-        
-        <label>Due Date:</label>
-        <input type="date" name="due_date" required><br>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 700px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #34d399; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Create Sales Invoice</h1>
+        <p style="margin: 4px 0 0 0; color: #34d399; font-weight: bold; font-size: 12px;">Active Client: {{ company.name if company else 'Mih Chowdhury Test Client' }}</p>
+    </div>
 
-        <label>Line Items (JSON Format):</label>
-        <textarea name="items" required></textarea><br>
+    <!-- This line has the correct address to process the invoice data safely -->
+    <form action="/view_invoices?company_id={{ company.id if company else '' }}" method="POST" style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937; display: flex; flex-direction: column; gap: 20px;">
+        
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Customer / Debtor Name *</label>
+            <input name="client_name" type="text" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box; font-size: 13px;">
+        </div>
 
-        <button type="submit">Create Invoice</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Invoice Date *</label>
+                <input name="invoice_date" type="date" required style="width: 100%; padding: 11px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; height: 44px; box-sizing: border-box; font-size: 13px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Payment Due Date *</label>
+                <input name="due_date" type="date" required style="width: 100%; padding: 11px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; height: 44px; box-sizing: border-box; font-size: 13px;">
+            </div>
+        </div>
+
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Itemized Description Summary *</label>
+            <textarea name="line_items" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box; font-size: 13px; min-height: 80px;"></textarea>
+        </div>
+
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Gross Invoice Value (Inc. GST) *</label>
+            <input name="total_amount" type="number" step="0.01" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box; font-size: 13px;">
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 14px; border-radius: 8px; border: none; background-color: #10b981; color: #fff; font-weight: bold; text-transform: uppercase; cursor: pointer; font-size: 13px;">
+            Commit Invoice Entry &rarr;
+        </button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}

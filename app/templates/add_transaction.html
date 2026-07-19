@@ -1,24 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Add Transaction</title>
-</head>
-<body>
-    <h1>Add a New Transaction</h1>
-    <form action="{{ url_for('transaction_routes.add_transaction') }}" method="POST">
-        <label for="description">Description:</label>
-        <input type="text" name="description" required>
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Post Individual Ledger Transaction</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Commit standard financial operational values into the accounting core maps</p>
+        </div>
+    </div>
 
-        <label for="date">Date:</label>
-        <input type="text" name="date" placeholder="DD-MM-YYYY" required>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+        <form action="/add_transaction" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="company_id" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Target Enterprise Entity *</label>
+                    <!-- Integrated smart selection logic directly inside the operational form field -->
+                    <select id="company_id" name="company_id" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs">
+                        {% for comp in companies %}
+                            <option value="{{ comp.id }}" {% if company and comp.id == company.id %}selected{% endif %}>
+                                {{ comp.name }} (ID: {{ comp.id }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="date" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Transaction Operational Date *</label>
+                    <input type="date" id="date" name="date" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs">
+                </div>
+            </div>
 
-        <label for="debit">Debit:</label>
-        <input type="number" name="debit">
+            <div>
+                <label for="description" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Journal Line Entry Description Summary *</label>
+                <input type="text" id="description" name="description" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs" placeholder="e.g., Client Invoice Settlement Allocation Payment Receipt">
+            </div>
 
-        <label for="credit">Credit:</label>
-        <input type="number" name="credit">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="debit" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Debit Amount Allocation ($ AUD)</label>
+                    <input type="number" step="0.01" min="0" id="debit" name="debit" value="0.00" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs">
+                </div>
+                <div>
+                    <label for="credit" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Credit Amount Allocation ($ AUD)</label>
+                    <input type="number" step="0.01" min="0" id="credit" name="credit" value="0.00" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs">
+                </div>
+            </div>
 
-        <button type="submit">Submit</button>
-    </form>
-</body>
-</html>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                <div>
+                    <label for="type_of_expense" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Expense Category (For Debit Lines)</label>
+                    <select id="type_of_expense" name="type_of_expense" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs">
+                        <option value="">-- Non-Expense Entry --</option>
+                        <option value="COGS">Cost of Goods Sold (COGS)</option>
+                        <option value="Rent">Rent Property Allocation</option>
+                        <option value="Utilities">Utilities & Infrastructure</option>
+                        <option value="Payroll">Payroll Operational Salaries</option>
+                        <option value="Marketing">Marketing & Business Development</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="type_of_income" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Income Classification Metrics (For Credit Lines)</label>
+                    <select id="type_of_income" name="type_of_income" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all shadow-xs">
+                        <option value="">-- Non-Income Entry --</option>
+                        <option value="sales">Standard Commercial Operating Sales</option>
+                        <option value="export">Export International Trade Revenues</option>
+                        <option value="gst_free">GST-Free Specialized Product Sales</option>
+                        <option value="payg_income">PAYG Eligible Installment Income</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <label for="invoice" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Audit Source Document Upload (PDF, JPG, PNG)</label>
+                <input type="file" id="invoice" name="invoice" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 file:cursor-pointer">
+            </div>
+
+            <div class="pt-6 border-t border-slate-100 flex justify-end space-x-3">
+                <button type="submit" class="px-6 py-3.5 bg-slate-950 text-white font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors shadow-md shadow-slate-950/10 cursor-pointer">
+                    Commit Ledger Transaction Row Entry
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

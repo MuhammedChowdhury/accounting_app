@@ -1,43 +1,59 @@
-import os
 import logging
-from flask import Flask, render_template, redirect, url_for, request
+import os
+import secrets
+from flask import Flask, request, session, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from flask_migrate import Migrate
-from flask_login import LoginManager, login_required, logout_user
 
-# ✅ Initialize Extensions
+# Initialize extensions globally
 db = SQLAlchemy()
-migrate = Migrate()
 login_manager = LoginManager()
+migrate = Migrate()
+
 
 def create_app():
+    """Application Factory core production configuration layer."""
     app = Flask(__name__)
-    app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 
-    # ✅ Safe Local Database Path Configuration
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    instance_dir = os.path.join(basedir, '..', 'instance')
-    os.makedirs(instance_dir, exist_ok=True)
+    # 🔒 SECURITY CONTROL: Pull secret key from production environment or auto-generate
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+    
+    # 🔒 DATABASE CONTROL: Check for live cloud database (PostgreSQL/MySQL), or fallback to local SQLite
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL") or "sqlite:///accounting.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # 🔒 FORCED TO SECURE LOCAL SQLITE FILE - NO MORE DEPLOYMENT HIJACKS
-    default_sqlite_path = f"sqlite:///{os.path.abspath(os.path.join(instance_dir, 'app.db'))}"
-    app.config['SQLALCHEMY_DATABASE_URI'] = default_sqlite_path
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    # ✅ Initialize Flask Extensions
+    # Initialize extensions with current application context
     db.init_app(app)
-    migrate.init_app(app, db)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
+
     login_manager.login_view = "auth_routes.login"
 
-    # ✅ Define User Model
-    from app.models import User as DBUser
+    # Force Python to load ALL models into memory immediately
+    from app.models import (
+        User,
+        Company,
+        Subscriber,
+        FinancialRecord,
+        PayrollRecord,
+        AssetLiability,
+        Equity,
+        Quote,
+        Invoice,
+        PurchaseOrder,
+        Bill,
+        Sale,
+        Employee,
+        PayrollRun,
+    )
 
     @login_manager.user_loader
     def load_user(user_id):
-        return DBUser.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
-    # ✅ Register Blueprints (No Duplicate Imports)
+    # Register Blueprint controllers
+    from app.routes.auth_routes import auth_routes
     from app.routes.bas_routes import bas_routes
     from app.routes.bill_routes import bill_routes
     from app.routes.cash_flow_routes import cash_flow_routes
@@ -49,10 +65,10 @@ def create_app():
     from app.routes.purchase_order_routes import purchase_order_routes
     from app.routes.quote_routes import quote_routes
     from app.routes.report_routes import report_routes
-    from app.routes.transaction_routes import transaction_routes
-    from app.routes.auth_routes import auth_routes
     from app.routes.subscribe_routes import subscribe_routes
+    from app.routes.transaction_routes import transaction_routes
 
+    app.register_blueprint(auth_routes)
     app.register_blueprint(bas_routes)
     app.register_blueprint(bill_routes)
     app.register_blueprint(cash_flow_routes)
@@ -64,31 +80,40 @@ def create_app():
     app.register_blueprint(purchase_order_routes)
     app.register_blueprint(quote_routes)
     app.register_blueprint(report_routes)
-    app.register_blueprint(transaction_routes)
-    app.register_blueprint(auth_routes)
     app.register_blueprint(subscribe_routes)
+    app.register_blueprint(transaction_routes)
 
-    # ✅ Root Route (Restricted)
-    @app.route('/index')
-    @login_required
-    def home():
-        routes = [rule.rule for rule in app.url_map.iter_rules() if "static" not in rule.rule]
-        return render_template("index.html", routes=routes)
+    # Makes company and companies available in every template
+    @app.context_processor
+    def inject_active_company():
+        company_id = session.get("company_id") or request.args.get("company_id", type=int)
 
-     # ✅ Logout Route
-    @app.route("/logout")
-    @login_required
-    def logout():
-        logout_user()
-        return redirect(url_for("auth_routes.login"))
+        try:
+            companies = db.session.query(Company).all()
+        except Exception:
+            companies = []
 
-    # ✅ Landing Route (for all users)
+        if company_id:
+            try:
+                company = db.session.get(Company, int(company_id))
+                if company:
+                    return dict(company=company, companies=companies)
+            except Exception:
+                pass
+
+        return dict(company=None, companies=companies)
+
+    # Homepage Matrix Navigation Gate
     @app.route("/")
+    @app.route("/index")
     def index():
+        company_id = session.get("company_id") or request.args.get("company_id", type=int)
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
         return render_template("welcome.html")
 
-    print("\n🔍 Registered Routes:")
-    for rule in app.url_map.iter_rules():
-        print(rule.endpoint, "→", rule.rule)
+    # Create database tables
+    with app.app_context():
+        db.create_all()
 
     return app

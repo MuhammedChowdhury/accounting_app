@@ -1,24 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Add Quote</title>
-</head>
-<body>
-    <h1>Add New Quote</h1>
-    <form action="{{ url_for('invoice_routes.add_quote') }}" method="POST">
-        <label>Item Name:</label>
-        <input type="text" name="item_name" required><br>
-        
-        <label>Quantity:</label>
-        <input type="number" name="quantity" required><br>
-
-        <label>Price:</label>
-        <input type="text" name="price" required><br>
-
-        <label>Quote Date:</label>
-        <input type="date" name="quote_date" required><br>
-
-        <button type="submit">Create Quote</button>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 700px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #6366f1; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Generate Client Quote / Estimate</h1>
+        <p style="margin: 4px 0 0 0; color: #6366f1; font-weight: bold; font-size: 12px;">Active Client: {{ company.name }}</p>
+    </div>
+    <form action="/view_quotes?company_id={{ company.id }}" method="POST" style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937; display: flex; flex-direction: column; gap: 20px;">
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Prospect / Customer Name *</label>
+            <input name="customer_name" type="text" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box;">
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Scope of Work Description *</label>
+            <textarea name="line_items" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box; min-height: 80px;"></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Estimated Total ($ AUD) *</label>
+                <input name="total_amount" type="number" step="0.01" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Validity Expiry Date *</label>
+                <input name="validity_period" type="date" required style="width: 100%; padding: 11px; border-radius: 6px; border: 1px solid #334155; background-color: #030712; color: #fff; box-sizing: border-box; height: 44px;">
+            </div>
+        </div>
+        <button type="submit" style="width: 100%; padding: 14px; border-radius: 8px; border: none; background-color: #6366f1; color: #fff; font-weight: bold; text-transform: uppercase; cursor: pointer;">Save Quote Option &rarr;</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}

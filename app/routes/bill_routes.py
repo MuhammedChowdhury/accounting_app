@@ -1,89 +1,87 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
-from app.models import db, Bill
-from datetime import datetime
+import logging
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
+from app import db
+from app.models import Company, Bill
 
 bill_routes = Blueprint('bill_routes', __name__)
 
-### 🔹 Add a Bill ###
-@bill_routes.route('/add_bill', methods=['POST'])
+@bill_routes.route('/add_bill', methods=['GET', 'POST'])
 def add_bill():
-    """Receives bill data and saves it to the database."""
+    """Renders the invoice entry layout form or handles direct submissions."""
     try:
-        data = request.form
-        vendor_name = data.get('vendor_name')
-        line_items = data.get('line_items')
-        total_amount = float(data.get('total_amount'))
-        due_date = datetime.strptime(data.get('due_date'), '%Y-%m-%d')
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
+        company = db.session.get(Company, company_id)
+        
+        if request.method == 'POST':
+            vendor_name = request.form.get('vendor_name')
+            line_items = request.form.get('line_items')
+            total_amount = request.form.get('total_amount', type=float, default=0.0)
+            due_date_str = request.form.get('due_date')
 
-        new_bill = Bill(
-            vendor_name=vendor_name,
-            line_items=line_items,
-            total_amount=total_amount,
-            due_date=due_date,
-            payment_status="Unpaid"  # Default status
-        )
-        db.session.add(new_bill)
-        db.session.commit()
+            if vendor_name and total_amount:
+                from datetime import datetime
+                try:
+                    due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+                except Exception:
+                    due_date = datetime.utcnow().date()
 
-        return jsonify({'message': '✅ Bill added successfully!'}), 201
+                new_bill = Bill(
+                    vendor_name=vendor_name,
+                    line_items=line_items,
+                    total_amount=total_amount,
+                    due_date=due_date,
+                    payment_status='Unpaid'
+                )
+                db.session.add(new_bill)
+                db.session.commit()
+                return redirect(url_for('bill_routes.view_bills', company_id=company_id))
+
+        return render_template('add_bill.html', company=company)
     except Exception as e:
-        return jsonify({'error': f'⚠ Failed to add bill: {str(e)}'}), 500
+        logging.error(f"Error loading manual bill entry layout form: {e}", exc_info=True)
+        return jsonify({'error': 'Internal configuration entry failed.'}), 500
 
-### 🔹 View All Bills (HTML) ###
-@bill_routes.route('/view_bills', methods=['GET'])
+@bill_routes.route('/view_bills', methods=['GET', 'POST'])
 def view_bills():
-    """Displays bills in an HTML template."""
+    """Handles both bill data submission rows and ledger list reading views."""
     try:
-        bills = Bill.query.all()
-        return render_template('bills.html', bills=bills)
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
+
+        company = db.session.get(Company, company_id)
+        if not company:
+            return redirect(url_for('company_routes.select_company'))
+
+        if request.method == 'POST':
+            vendor_name = request.form.get('vendor_name')
+            line_items = request.form.get('line_items')
+            total_amount = request.form.get('total_amount', type=float, default=0.0)
+            due_date_str = request.form.get('due_date')
+
+            if vendor_name and total_amount:
+                from datetime import datetime
+                try:
+                    due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+                except Exception:
+                    due_date = datetime.utcnow().date()
+
+                new_bill = Bill(
+                    vendor_name=vendor_name,
+                    line_items=line_items,
+                    total_amount=total_amount,
+                    due_date=due_date,
+                    payment_status='Unpaid'
+                )
+                db.session.add(new_bill)
+                db.session.commit()
+                return redirect(url_for('bill_routes.view_bills', company_id=company_id))
+
+        bills = db.session.query(Bill).all()
+        return render_template('view_bills.html', company=company, bills=bills)
+
     except Exception as e:
-        return jsonify({'error': f'⚠ Failed to fetch bills: {str(e)}'}), 500
-
-### 🔹 View All Bills (JSON) ###
-@bill_routes.route('/api/bills', methods=['GET'])
-def get_bills():
-    """Returns all bills in JSON format."""
-    try:
-        bills = Bill.query.all()
-        return jsonify([{
-            'id': bill.id,
-            'vendor_name': bill.vendor_name,
-            'line_items': bill.line_items,
-            'total_amount': bill.total_amount,
-            'due_date': bill.due_date.strftime('%Y-%m-%d'),
-            'payment_status': bill.payment_status
-        } for bill in bills]), 200
-    except Exception as e:
-        return jsonify({'error': f'⚠ Failed to fetch bills: {str(e)}'}), 500
-
-### 🔹 Update Bill Payment Status ###
-@bill_routes.route('/update_bill/<int:bill_id>', methods=['POST'])
-def update_bill(bill_id):
-    """Updates the payment status of a bill."""
-    try:
-        bill = Bill.query.get(bill_id)
-        if not bill:
-            return jsonify({'error': '⚠ Bill not found!'}), 404
-
-        bill.payment_status = request.form.get('payment_status', bill.payment_status)
-        db.session.commit()
-
-        return jsonify({'message': f'✅ Bill {bill_id} updated successfully!'}), 200
-    except Exception as e:
-        return jsonify({'error': f'⚠ Failed to update bill: {str(e)}'}), 500
-
-### 🔹 Delete a Bill ###
-@bill_routes.route('/delete_bill/<int:bill_id>', methods=['DELETE'])
-def delete_bill(bill_id):
-    """Deletes a bill from the database."""
-    try:
-        bill = Bill.query.get(bill_id)
-        if not bill:
-            return jsonify({'error': '⚠ Bill not found!'}), 404
-
-        db.session.delete(bill)
-        db.session.commit()
-
-        return jsonify({'message': f'✅ Bill {bill_id} deleted successfully!'}), 200
-    except Exception as e:
-        return jsonify({'error': f'⚠ Failed to delete bill: {str(e)}'}), 500
+        logging.error(f"Accounts payable matrix failure: {e}", exc_info=True)
+        return jsonify({'error': 'Supplier liability engine failed to load.'}), 500

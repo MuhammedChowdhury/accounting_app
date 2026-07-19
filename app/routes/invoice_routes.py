@@ -1,180 +1,58 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
-from app.models import db, Invoice, Quote
-import openpyxl
-import os
-from datetime import datetime
-from flask import send_file
+import logging
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
+from app import db
+from app.models import Company, Invoice
 
 invoice_routes = Blueprint('invoice_routes', __name__)
-script_dir = os.path.dirname(__file__)
 
-### 🔹 Helper Function: Generate Invoice as Excel File ###
-def create_excel_invoice(invoice_number, client_name, supplier_name, line_items, total_amount, due_date):
-    """Creates a structured invoice file in Excel format."""
-    file_name = f"Invoice_{invoice_number}.xlsx"
-    excel_path = os.path.join(script_dir, file_name)
-
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Invoice"
-
-    # ✅ Invoice Metadata (Top)
-    ws["A1"] = "Invoice Number:"
-    ws["B1"] = invoice_number
-    ws["A2"] = "Date:"
-    ws["B2"] = datetime.today().strftime('%Y-%m-%d')
-    ws["A3"] = "Due Date:"
-    ws["B3"] = due_date
-
-    # ✅ Client Details (Left)
-    ws["A5"] = "Client Name:"
-    ws["B5"] = client_name
-
-    # ✅ Supplier Details (Right)
-    ws["D5"] = "Supplier Name:"
-    ws["E5"] = supplier_name
-
-    # ✅ Column Headers (Invoice Table)
-    headers = ["Date", "Description", "Rate", "Quantity", "GST (10%)", "Total"]
-    ws.append([""])  
-    ws.append(headers)
-
-    # ✅ Add Invoice Entries Dynamically
-    for item in line_items:
-        date = item.get("date")
-        description = item.get("description")
-        rate = float(item.get("rate", 0))
-        quantity = int(item.get("quantity", 1))
-        gst = rate * quantity * 0.10  
-        total = rate * quantity  
-        ws.append([date, description, rate, quantity, gst, total])
-
-    # ✅ Total GST & Grand Total Calculation
-    total_row = len(line_items) + 10
-    ws[f"D{total_row}"] = "Total GST:"
-    ws[f"E{total_row}"] = f"=SUM(E11:E{total_row - 1})"
-    ws[f"D{total_row+1}"] = "Grand Total:"
-    ws[f"E{total_row+1}"] = f"=SUM(F11:F{total_row - 1}) + SUM(E11:E{total_row - 1})"
-
-    wb.save(excel_path)
-    return file_name
-
-### 🔹 Add Invoice ###
-@invoice_routes.route('/add_invoice', methods=['POST'])
+@invoice_routes.route('/add_invoice', methods=['GET'])
 def add_invoice():
-    """Receives invoice data & generates a separate Excel invoice file."""
-    try:
-        data = request.json  
-        invoice_number = data.get("invoice_number")
-        client_name = data.get("client_name")
-        supplier_name = data.get("supplier_name")
-        line_items = data.get("items", [])
-        due_date = data.get("due_date")
+    """Renders the single entry manual invoicing layout."""
+    company_id = request.args.get('company_id', type=int) or session.get('company_id')
+    if not company_id:
+        return redirect(url_for('company_routes.select_company'))
+    company = db.session.get(Company, company_id)
+    return render_template('add_invoice.html', company=company)
 
-        # Validate input
-        if not invoice_number or not client_name or not supplier_name or not line_items or not due_date:
-            return jsonify({"error": "Missing required fields"}), 400
-
-        # Calculate total amount
-        total_amount = sum(float(item.get("rate", 0)) * int(item.get("quantity", 1)) for item in line_items)
-
-        # Save invoice in database
-        new_invoice = Invoice(
-            client_name=client_name,
-            supplier_name=supplier_name,
-            line_items=str(line_items),
-            total_amount=total_amount,
-            due_date=datetime.strptime(due_date, '%Y-%m-%d'),
-            payment_status="Pending"
-        )
-        db.session.add(new_invoice)
-        db.session.commit()
-
-        file_name = create_excel_invoice(invoice_number, client_name, supplier_name, line_items, total_amount, due_date)
-        
-        return jsonify({"message": f"✅ Invoice '{file_name}' created!", "invoice": data}), 201
-
-    except Exception as e:
-        return jsonify({"error": f"Failed to add invoice: {str(e)}"}), 500
-
-### 🔹 View Invoices ###
-@invoice_routes.route('/view_invoices', methods=['GET'])
+@invoice_routes.route('/view_invoices', methods=['GET', 'POST'])
 def view_invoices():
+    """Handles both invoice data submission rows and ledger list reading views."""
     try:
-        invoices = Invoice.query.all()
-        return render_template('view_invoices.html', invoices=invoices)
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
+
+        company = db.session.get(Company, company_id)
+        if not company:
+            return redirect(url_for('company_routes.select_company'))
+
+        if request.method == 'POST':
+            client_name = request.form.get('client_name')
+            line_items = request.form.get('line_items')
+            total_amount = request.form.get('total_amount', type=float, default=0.0)
+            due_date_str = request.form.get('due_date')
+
+            if client_name and total_amount:
+                from datetime import datetime
+                try:
+                    due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+                except Exception:
+                    due_date = datetime.utcnow().date()
+
+                new_invoice = Invoice(
+                    client_name=client_name,
+                    line_items=line_items,
+                    total_amount=total_amount,
+                    due_date=due_date,
+                    payment_status='Pending'
+                )
+                db.session.add(new_invoice)
+                db.session.commit()
+                return redirect(url_for('invoice_routes.view_invoices', company_id=company_id))
+
+        invoices = db.session.query(Invoice).all()
+        return render_template('view_invoices.html', company=company, invoices=invoices)
+
     except Exception as e:
-        flash(f"Failed to fetch invoices: {str(e)}", "error")
-        return redirect(url_for('invoice_routes.view_invoices'))
-
-### 🔹 Convert Quote to Invoice ###
-@invoice_routes.route('/convert_to_invoice/<int:quote_id>', methods=['POST'])
-def convert_to_invoice(quote_id):
-    try:
-        quote = Quote.query.get(quote_id)
-        if not quote:
-            flash("Quote not found", "error")
-            return redirect(url_for('invoice_routes.view_quotes'))
-
-        new_invoice = Invoice(
-            client_name="Customer Name",
-            line_items=quote.item_name,
-            total_amount=quote.quantity * quote.price,
-            due_date=datetime.now().strftime('%Y-%m-%d'),
-            payment_status="Pending"
-        )
-        db.session.add(new_invoice)
-        db.session.commit()
-
-        flash("Quote converted to invoice successfully!", "success")
-        return redirect(url_for('invoice_routes.view_invoices'))
-    except Exception as e:
-        flash(f"Failed to convert quote: {str(e)}", "error")
-        return redirect(url_for('invoice_routes.view_quotes'))
-
-### 🔹 Mark Invoice as Paid ###
-@invoice_routes.route('/mark_paid/<int:invoice_id>', methods=['POST'])
-def mark_invoice_paid(invoice_id):
-    try:
-        invoice = Invoice.query.get(invoice_id)
-        if not invoice:
-            flash("Invoice not found", "error")
-            return redirect(url_for('invoice_routes.view_invoices'))
-        
-        invoice.payment_status = "Paid"
-        db.session.commit()
-        flash("Invoice marked as paid!", "success")
-        return redirect(url_for('invoice_routes.view_invoices'))
-    except Exception as e:
-        flash(f"Failed to update invoice: {str(e)}", "error")
-        return redirect(url_for('invoice_routes.view_invoices'))
-
-### 🔹 Delete Invoice ###
-@invoice_routes.route('/delete_invoice/<int:invoice_id>', methods=['POST'])
-def delete_invoice(invoice_id):
-    try:
-        invoice = Invoice.query.get(invoice_id)
-        if not invoice:
-            flash("Invoice not found", "error")
-            return redirect(url_for('invoice_routes.view_invoices'))
-        
-        db.session.delete(invoice)
-        db.session.commit()
-        flash("Invoice deleted successfully!", "success")
-        return redirect(url_for('invoice_routes.view_invoices'))
-    except Exception as e:
-        flash(f"Failed to delete invoice: {str(e)}", "error")
-        return redirect(url_for('invoice_routes.view_invoices'))
-
-
-
-@invoice_routes.route('/download_invoice/<invoice_number>', methods=['GET'])
-def download_invoice(invoice_number):
-    """Allows users to download a generated invoice file."""
-    file_name = f"Invoice_{invoice_number}.xlsx"
-    excel_path = os.path.join(script_dir, file_name)
-
-    if not os.path.exists(excel_path):
-        return jsonify({"error": "Invoice file not found!"}), 404
-
-    return send_file(excel_path, as_attachment=True)
+        logging.error(f"Invoicing module computation failure: {e}", exc_info=True)
+        return jsonify({'error': 'Accounts receivable dataset failed to initialize.'}), 500

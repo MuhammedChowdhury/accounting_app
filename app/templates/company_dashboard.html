@@ -1,11 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Company Dashboard</title>
-</head>
-<body>
-    <h1>Dashboard for {{ company.name }}</h1>
-    <p>ABN: {{ company.abn_number }}</p>
-    <p>Address: {{ company.address }}</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-8 animate-fade-in">
+    <!-- Top Greeting Header Panel -->
+    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Workspace Ledger</span>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight mt-1">{{ company.name }}</h1>
+            <p class="text-sm text-slate-500 mt-1">Established Profile Context Record &bull; Created on {{ company.created_at }}</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="/add-transaction" class="px-4 py-2.5 bg-slate-950 text-white font-semibold text-xs rounded-xl hover:bg-slate-800 transition-colors shadow-sm">
+                + Post Transaction
+            </a>
+            <a href="/general_ledger_form?company_id={{ company.id }}" class="px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-200 transition-colors border border-slate-200">
+                Audit General Ledger
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Insights Metrics Cards Grid Container -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Registration Identifiers</div>
+            <div class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">ABN Number:</span> <span class="font-semibold text-slate-900">{{ company.abn_number or 'Not Logged' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">TFN Number:</span> <span class="font-semibold text-slate-900">{{ company.tfn_number or 'Not Logged' }}</span></div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Primary Liaison Officer</div>
+            <div class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">Full Name:</span> <span class="font-semibold text-slate-900">{{ company.contact_person or 'Unassigned' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Contact Number:</span> <span class="font-semibold text-slate-900">{{ company.phone or 'Not Provided' }}</span></div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Communication Channel Mapping</div>
+            <div class="mt-4 space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-slate-500">Secure Email:</span> <span class="font-semibold text-slate-900 truncate max-w-[180px]">{{ company.email or 'Not Provided' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Database Reference:</span> <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">ID: {{ company.id }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Corporate Information Details Section Layout Block -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Registered Corporate Identity Records</h3>
+        </div>
+        <div class="p-6 space-y-6">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Principal Place of Business Location</label>
+                <div class="text-sm font-medium text-slate-800 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed">
+                    {{ company.address or 'No structural physical operating premises address has been configured yet.' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

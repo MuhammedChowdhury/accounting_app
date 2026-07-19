@@ -1,66 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Mih Chowdhury Accounting App</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #f0f4f8, #d9e2ec);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      color: #333;
-    }
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:1200px; margin:40px auto; padding:20px; color:#fff; box-sizing:border-box; font-family:system-ui, sans-serif;">
+    
+    <div style="background:linear-gradient(135deg, #111827 0%, #1e1b4b 100%); border:1px solid #1f2937; padding:30px; border-radius:16px; margin-bottom:30px;">
+        <h1 style="margin:0; font-size:24px;">Accounting Practice Control Desk</h1>
+        {% if company %}
+            <p style="margin:10px 0 0 0; color:#34d399; font-weight:bold;">Active Client Ledger: {{ company.name }} (ABN: {{ company.abn_number }})</p>
+        {% else %}
+            <p style="margin:10px 0 0 0; color:#f59e0b; font-weight:bold;">⚠️ No Active Client Context Selected. Please pick or register a client file.</p>
+        {% endif %}
+    </div>
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; width:100%;">
+        {% set cid = company.id if company else '' %}
+        
+        <!-- System Base Nodes -->
+        <a href="/select_company" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">🏢 Switch / Select Client</a>
+        <a href="/Company_Form" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">➕ Register New Entity</a>
+        
+        <!-- Core Operational Inputs -->
+        <a href="/add-transaction?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">💸 Post Journal Entry</a>
+        <a href="/add-transaction-bulk?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">📥 Batch CSV Upload</a>
+        
+        <!-- Accounts Receivable (Sales Pipeline Fixed) -->
+        <a href="/add_invoice?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">✍️ Create New Invoice</a>
+        <a href="/view_invoices?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">📄 Accounts Receivable Ledger</a>
+        
+        <!-- Accounts Payable (Purchases Pipeline Fixed) -->
+        <a href="/add_bill?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">✍️ Record Supplier Bill</a>
+        <a href="/view_bills?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">📥 Accounts Payable Ledger</a>
+        
+        <!-- Estimates & Procurement Modules Fixed -->
+        <a href="/add_quote?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">✍️ Generate Client Quote</a>
+        <a href="/view_quotes?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">💬 Client Quotes History</a>
+        
+        <a href="/add_purchase_order?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">✍️ Issue Purchase Order</a>
+        <a href="/view_purchase_orders?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">🛒 Purchase Orders Log</a>
+        
+        <!-- Workforce Metrics -->
+        <a href="/payroll?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">💼 Client STP Payroll</a>
+        <a href="/add_employee?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">➕ Onboard New Employee</a>
+        
+        <!-- Compliance Reporting Outputs -->
+        <a href="/profit_loss?company_id={{ cid }}&date_from=2026-01-01&date_to=2026-12-31" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">📊 Client Profit & Loss</a>
+        <a href="/balance_sheet?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">⚖️ Client Balance Sheet</a>
+        <a href="/general_ledger_form?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">📖 Client General Ledger</a>
+        <a href="/cash_flow?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">💧 Client Cash Flow</a>
+        <a href="/bas_form?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">🇦🇺 Client BAS Form</a>
+        <a href="/trial-balance?company_id={{ cid }}" style="display:block; padding:24px; border:1px solid #1f2937; background:#0f172a; text-decoration:none; color:#fff; border-radius:12px;">🗂️ Client Trial Balance</a>
+        
+        <a href="/logout" style="display:block; padding:24px; border:1px solid #7f1d1d; background:#450a0a; text-decoration:none; color:#fca5a5; border-radius:12px;">🔒 Logout Session</a>
+    </div>
 
-    p.tagline {
-      font-size: 1.2rem;
-      color: #555;
-      margin-bottom: 40px;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 20px;
-    }
-
-    .btn {
-      padding: 15px 30px;
-      font-size: 1rem;
-      text-decoration: none;
-      color: white;
-      background-color: #007BFF;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: #0056b3;
-    }
-
-    footer {
-      position: absolute;
-      bottom: 20px;
-      font-size: 0.9rem;
-      color: #888;
-    }
-  </style>
-</head>
-<body>
-  <h1>Welcome to Mih Chowdhury Accounting App</h1>
-  <p class="tagline">Simple tools for smarter business</p>
-  <div class="button-group">
-    <a href="{{ url_for('auth_routes.login') }}" class="btn">Log In</a>
-    <a href="{{ url_for('auth_routes.register') }}" class="btn">Register</a>
-  </div>
-  <footer>© 2025 Mih Chowdhury</footer>
-</body>
-</html>
+</div>
+{% endblock %}

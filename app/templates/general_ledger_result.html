@@ -1,69 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>General Ledger</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        .highlight {
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>General Ledger</h1>
-        <p><strong>Company ID:</strong> {{ company_id }}</p>
-        <p><strong>Reporting Period:</strong> From {{ date_from }} to {{ date_to }}</p>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Debit (in $)</th>
-                    <th>Credit (in $)</th>
-                    <th>Balance (in $)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in ledger_entries %}
-                <tr>
-                    <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ entry.description }}</td>
-                    <td>{{ entry.debit }}</td>
-                    <td>{{ entry.credit }}</td>
-                    <td>{{ entry.credit - entry.debit }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Compiled Statement Profile</span>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">General Ledger Statement Log</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Corporate ID: {{ company_id }} &bull; Period: {{ date_from }} to {{ date_to }}</p>
+        </div>
+        <button onclick="window.print();" class="px-4 py-2.5 bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer">
+            🖨 Print / Export PDF
+        </button>
     </div>
-</body>
-</html>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase border-b border-slate-100">
+                        <th class="p-4">Operational Date</th>
+                        <th class="p-4">Reference Line Journal Summary Description</th>
+                        <th class="p-4 text-right">Debit Balance Allocation</th>
+                        <th class="p-4 text-right">Credit Balance Allocation</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for entry in ledger_entries %}
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="p-4 font-mono text-xs whitespace-nowrap">{{ entry.date }}</td>
+                        <td class="p-4 font-medium max-w-sm truncate">{{ entry.description }}</td>
+                        <td class="p-4 text-right font-mono text-xs {% if entry.debit > 0 %} text-rose-600 font-semibold {% else %} text-slate-400 {% endif %}">
+                            ${{ "{:,.2f}".format(entry.debit or 0.0) }}
+                        </td>
+                        <td class="p-4 text-right font-mono text-xs {% if entry.credit > 0 %} text-emerald-600 font-semibold {% else %} text-slate-400 {% endif %}">
+                            ${{ "{:,.2f}".format(entry.credit or 0.0) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

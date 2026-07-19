@@ -1,78 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Payslip</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f9;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        td {
-            text-align: right;
-        }
-        td:first-child {
-            text-align: left;
-        }
-        .total {
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Payslip</h1>
-        <h2>Employee: {{ employee_name }}</h2>
-        <p>Date: {{ payroll_date }}</p>
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8 animate-fade-in print:py-0 print:px-0">
+    
+    <!-- 📄 Payslip Container Frame -->
+    <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-2xl relative overflow-hidden print:border-0 print:bg-white print:text-black print:shadow-none print:p-0">
+        
+        <!-- Header Branding Module -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-800 print:border-black gap-4">
+            <div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 print:hidden">
+                    🇦🇺 Compliant Record
+                </span>
+                <h1 class="text-2xl font-black text-white tracking-tight mt-1 print:text-black">EMPLOYEE PAYSLIP</h1>
+                <p class="text-xs text-slate-400 print:text-slate-600 mt-0.5">Corporate Entity Context Profile Tracking</p>
+            </div>
+            <div class="text-right sm:text-right w-full sm:w-auto">
+                <div class="text-sm font-bold text-white print:text-black font-mono uppercase tracking-wider">{{ company.name if company else 'Practice Client Entity' }}</div>
+                {% if company and company.abn_number %}
+                    <div class="text-[10px] text-slate-500 font-mono mt-0.5 print:text-slate-600">ABN: {{ company.abn_number }}</div>
+                {% endif %}
+            </div>
+        </div>
 
-        <table>
-            <tr>
-                <th>Description</th>
-                <th>Amount ($)</th>
-            </tr>
-            <tr>
-                <td>Gross Wages</td>
-                <td>{{ gross_wages }}</td>
-            </tr>
-            <tr>
-                <td>PAYG Withholding</td>
-                <td>{{ payg_withholding }}</td>
-            </tr>
-            <tr>
-                <td>Superannuation</td>
-                <td>{{ superannuation }}</td>
-            </tr>
-            <tr>
-                <td>Deductions</td>
-                <td>{{ deductions }}</td>
-            </tr>
-            <tr class="total">
-                <td>Net Pay</td>
-                <td>{{ net_pay }}</td>
-            </tr>
-        </table>
+        <!-- Metadata Context Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6 p-4 rounded-xl bg-slate-950/40 border border-slate-900 print:border-slate-300 print:bg-slate-50 print:text-black">
+            <div>
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target Employee Profile</div>
+                <div class="text-sm font-bold text-white mt-0.5 print:text-black">{{ employee_name }}</div>
+            </div>
+            <div class="md:text-right">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Payment Operational Date</div>
+                <div class="text-sm font-bold text-slate-200 mt-0.5 print:text-black font-mono">{{ payroll_date }}</div>
+            </div>
+        </div>
+
+        <!-- Ledger Calculation Table Matrix -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider print:border-black print:text-black font-bold">
+                        <th class="py-3 px-2">Operational Description Summary</th>
+                        <th class="py-3 px-2 text-right">Calculation Value ($ AUD)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-900 print:divide-slate-200 text-slate-300 print:text-black">
+                    <tr>
+                        <td class="py-3 px-2 font-medium">Gross Base Wages</td>
+                        <td class="py-3 px-2 text-right font-mono text-white print:text-black">${{ "%.2f"|format(gross_wages|float) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-2 text-slate-400 print:text-slate-600 font-medium">PAYG Tax Withholding</td>
+                        <td class="py-3 px-2 text-right font-mono text-red-400 print:text-black">-${{ "%.2f"|format(payg_withholding|float) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-2 text-slate-400 print:text-slate-600 font-medium">Superannuation Guarantee (12.0%)</td>
+                        <td class="py-3 px-2 text-right font-mono text-indigo-400 print:text-black">${{ "%.2f"|format(superannuation|float) }}</td>
+                    </tr>
+                    {% if deductions|float > 0 %}
+                    <tr>
+                        <td class="py-3 px-2 text-slate-400 print:text-slate-600 font-medium">Other Post-Tax Deductions</td>
+                        <td class="py-3 px-2 text-right font-mono text-red-400 print:text-black">-${{ "%.2f"|format(deductions|float) }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="bg-indigo-950/20 font-bold border-t-2 border-slate-800 text-white print:bg-slate-100 print:text-black print:border-black">
+                        <td class="py-4 px-2 text-sm uppercase tracking-wider">Net Statement Payout Amount</td>
+                        <td class="py-4 px-2 text-right text-sm font-mono text-emerald-400 print:text-black">${{ "%.2f"|format(net_pay|float) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Interactive Operational Control Actions Bar -->
+        <div class="mt-8 pt-4 border-t border-slate-900 flex justify-end gap-4 print:hidden">
+            <button onclick="window.print()" class="px-5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-900 text-xs font-bold uppercase tracking-wider text-slate-200 transition-all duration-150 flex items-center gap-2">
+                🖨️ Export PDF / Print Payslip
+            </button>
+            <a href="/payroll" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-indigo-600/20 transition-all duration-150">
+                Return to Payroll Deck &rarr;
+            </a>
+        </div>
+
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

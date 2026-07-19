@@ -1,11 +1,11 @@
-import os
-from waitress import serve
 from app import create_app
 
 app = create_app()
 
-print("📡 DATABASE URI:", app.config["SQLALCHEMY_DATABASE_URI"])
-
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    serve(app, host="0.0.0.0", port=port)
+    app.run(host="127.0.0.1", port=5000, debug=True)
+
+
+with app.app_context():
+    for rule in app.url_map.iter_rules():
+        print(f"Endpoint: {rule.endpoint} -> URL: {rule.rule}")

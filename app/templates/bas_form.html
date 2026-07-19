@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <!-- Gov Compliance Header -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #f59e0b; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #fff;">Business Activity Statement (BAS) Summary</h1>
+        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px;">Australian Taxation Office (ATO) Compliance Reporting Matrix</p>
+        <p style="margin: 4px 0 0 0; color: #34d399; font-weight: bold; font-size: 12px;">Entity: {{ company.name }} | ABN: {{ company.abn_number }}</p>
+    </div>
+
+    <!-- ATO Period Selection Filter -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/bas_form" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Financial Year</label>
+                <select name="financial_year" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="2026">2025 - 2026</option>
+                    <option value="2025">2024 - 2025</option>
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Reporting Quarter</label>
+                <select name="quarter" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="Q1">Q1 (July - September)</option>
+                    <option value="Q2">Q2 (October - December)</option>
+                    <option value="Q3">Q3 (January - March)</option>
+                    <option value="Q4">Q4 (April - June)</option>
+                </select>
+            </div>
+
+            <button type="submit" style="padding: 11px 24px; background-color: #f59e0b; color: #000; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 40px;">
+                Fetch Return Figures
+            </button>
+        </form>
+    </div>
+
+    <!-- Official BAS Calculation Matrix -->
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937;">
+        <h2 style="margin: 0 0 20px 0; font-size: 16px; color: #fff; text-transform: uppercase; tracking: 0.05em;">GST Calculation Obligations</h2>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #1f2937; color: #94a3b8; text-transform: uppercase; font-size: 11px;">
+                    <th style="padding: 12px 10px; text-align: left;">ATO Label / Description Summary</th>
+                    <th style="padding: 12px 10px; text-align: right;">Reported Value ($ AUD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 12px 10px;"><b style="color: #f59e0b; font-family: monospace; margin-right: 10px;">G1</b> Total Sales / Gross Income Inflow (Inc. GST)</td>
+                    <td style="padding: 12px 10px; text-align: right; font-family: monospace;">${{ "%.2f"|format(gross_sales|default(0.0)) }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 12px 10px;"><b style="color: #34d399; font-family: monospace; margin-right: 10px;">1A</b> GST Collected from Customers (Payable to ATO)</td>
+                    <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #f87171;">${{ "%.2f"|format(gst_received|default(0.0)) }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 12px 10px;"><b style="color: #6366f1; font-family: monospace; margin-right: 10px;">1B</b> GST Paid on Business Purchases (Claimable Refund)</td>
+                    <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #34d399;">${{ "%.2f"|format(gst_paid|default(0.0)) }}</td>
+                </tr>
+                
+                {% set net_bas = (gst_received|default(0.0) - gst_paid|default(0.0)) %}
+                <tr style="font-weight: bold; font-size: 14px; background-color: #030712; border-top: 2px solid #f59e0b;">
+                    <td style="padding: 16px 10px;">
+                        {% if net_bas >= 0 %}
+                            🔴 Net Activity Statement Payment Due to ATO
+                        {% else %}
+                            🟢 Net Activity Statement Refund Owed to Firm Client
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px 10px; text-align: right; font-family: monospace; color: {% if net_bas >= 0 %}#f87171{% else %}#34d399{% endif %};">
+                        ${{ "%.2f"|format(net_bas|abs) }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

@@ -2,32 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bookkeeping App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Accounting Workspace</title>
+    <style>
+        /* This is a bulletproof backup layout that forces boxes to load */
+        html, body { background-color: #0b0f19 !important; color: #f1f5f9 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; margin: 0; padding: 0; min-height: 100%; display: flex; flex-direction: column; }
+        header { background-color: #111827; border-bottom: 1px solid #1f2937; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .branding { font-weight: 800; font-size: 16px; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
+        .client-info { background-color: #064e3b; border: 1px solid #047857; color: #34d399; font-weight: bold; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-mono; }
+        main { flex: 1; max-width: 1200px; width: 100%; margin: 40px auto; padding: 0 20px; box-sizing: border-box; }
+        footer { background-color: #030712; color: #4b5563; font-family: monospace; font-size: 11px; padding: 15px; text-align: center; border-top: 1px solid #111827; margin-top: auto; }
+        
+        /* Grid and cards styles embedded directly here to override any ghost errors */
+        .practice-container { display: flex; flex-direction: column; gap: 30px; width: 100%; }
+        .hero-banner { background: linear-gradient(135deg, #111827 0%, #1e1b4b 100%); border: 1px solid #1f2937; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hero-banner h1 { margin: 0 0 10px 0; color: #ffffff; font-size: 24px; font-weight: 800; }
+        .hero-banner p { margin: 0; color: #9ca3af; font-size: 13px; }
+        .matrix-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; }
+        .matrix-grid a { display: flex; flex-direction: column; justify-content: space-between; padding: 24px; border-radius: 12px; border: 1px solid #1f2937; background-color: #0f172a; text-decoration: none !important; color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-height: 100px; transition: transform 0.2s, border-color 0.2s; }
+        .matrix-grid a:hover { transform: translateY(-3px); border-color: #4b5563; background-color: #1e293b; }
+        .matrix-grid h3 { margin: 0; font-size: 14px; font-weight: 700; color: #ffffff; }
+        .matrix-grid span { display: block; margin-top: 15px; font-size: 10px; font-family: monospace; color: #6b7280; text-transform: uppercase; border-top: 1px solid #1f2937; padding-top: 10px; }
+        .matrix-grid a[href="/logout"] { border-color: #7f1d1d; background-color: #450a0a; }
+        .matrix-grid a[href="/logout"]:hover { border-color: #dc2626; background-color: #7f1d1d; }
+        .matrix-grid a[href="/logout"] h3 { color: #fca5a5; }
+        .matrix-grid a[href="/logout"] span { color: #f87171; }
+    </style>
 </head>
 <body>
+
     <header>
-        <h1>Bookkeeping App</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Dashboard</a></li>
-                <li><a href="/profit_loss">Profit & Loss</a></li>
-                <li><a href="/balance_sheet">Balance Sheet</a></li>
-                <li><a href="/gst_summary">GST Summary</a></li>
-                <li><a href="/trial_balance">Trial Balance</a></li>
-                <li><a href="/ledger">Ledger</a></li>
-                <li><a href="/add_company">Add Company</a></li>
-            </ul>
-        </nav>
+        <div class="branding">💼 Accounting Workspace</div>
+        <div>
+            {% if company %}
+                <div class="client-info">Active File: {{ company.name }}</div>
+            {% else %}
+                <div class="client-info" style="background-color: #374151; border-color: #4b5563; color: #d1d5db;">No Active Client File</div>
+            {% endif %}
+        </div>
     </header>
+
     <main>
         {% block content %}
+        <!-- Dynamic content displays inside here -->
         {% endblock %}
     </main>
+
     <footer>
-        <p>&copy; 2025 Bookkeeping App. All rights reserved.</p>
-        <p>Contact us at <a href="mailto:support@bookkeepingapp.com">support@bookkeepingapp.com</a></p>
+        Secure Practice Local Host Isolation Rule Environment Context Locked: 127.0.0.1
     </footer>
+
 </body>
 </html>

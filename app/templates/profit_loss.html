@@ -1,60 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Profit and Loss Statement</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
-        h1, h2, h3 { color: #333; }
-        table { border-collapse: collapse; width: 100%; background-color: white; }
-        th, td { padding: 10px; border: 1px solid black; text-align: left; }
-    </style>
-</head>
-<body>
-    <h1>Profit and Loss Statement</h1>
-    <h2>Company: {{ company_details.name }} (ABN: {{ company_details.abn }})</h2>
-    <p>Address: {{ company_details.address }}</p>
-    <h3>Reporting Period: {{ company_details.period.from }} to {{ company_details.period.to }}</h3>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <!-- Professional Header -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #1f2937;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Profit & Loss (P&L) Statement</h1>
+        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px;">Entity: <span style="color: #fff; font-weight: bold;">{{ company.name }}</span> | Assessment Range Tracking</p>
+    </div>
 
-    <h4>Income</h4>
-    <table>
-        <tr><th>Description</th><th>Amount</th></tr>
-        {% for record in income_records %}
-        <tr>
-            <td>{{ record.description }}</td>
-            <td>${{ "{:,.2f}".format(record.amount) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <p><strong>Total Income:</strong> ${{ "{:,.2f}".format(total_income) }}</p>
+    <!-- Date Range Accounting Filters -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/profit_loss" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Date From (Start of Period)</label>
+                <input type="date" name="date_from" value="2026-01-01" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px; box-sizing: border-box;">
+            </div>
 
-    <h4>Cost of Goods Sold (COGS)</h4>
-    <table>
-        <tr><th>Description</th><th>Amount</th></tr>
-        {% for record in cogs_records %}
-        <tr>
-            <td>{{ record.description }}</td>
-            <td>${{ "{:,.2f}".format(record.amount) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <p><strong>Total COGS:</strong> ${{ "{:,.2f}".format(total_cogs) }}</p>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Date To (End of Period)</label>
+                <input type="date" name="date_to" value="2026-12-31" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px; box-sizing: border-box;">
+            </div>
 
-    <h4>Expenses</h4>
-    <table>
-        <tr><th>Description</th><th>Amount</th></tr>
-        {% for record in expense_records %}
-        <tr>
-            <td>{{ record.description }}</td>
-            <td>${{ "{:,.2f}".format(record.amount) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <p><strong>Total Expenses:</strong> ${{ "{:,.2f}".format(total_expenses) }}</p>
+            <button type="submit" style="padding: 11px 24px; background-color: #4f46e5; color: #fff; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 40px;">
+                Generate Statement
+            </button>
+        </form>
+    </div>
 
-    <h4>Profit Calculations</h4>
-    <p><strong>Gross Profit:</strong> ${{ "{:,.2f}".format(gross_profit) }}</p>
-    <p><strong>Operating Profit:</strong> ${{ "{:,.2f}".format(operating_profit) }}</p>
-    <p><strong>Tax:</strong> ${{ "{:,.2f}".format(tax) }}</p>
-    <p><strong>Net Profit After Tax:</strong> ${{ "{:,.2f}".format(net_profit_after_tax) }}</p>
-</body>
-</html>
+    <!-- Ledger Performance Summary Rows -->
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937;">
+        
+        <!-- Revenue Matrix -->
+        <h3 style="color: #34d399; margin-top: 0; border-bottom: 1px solid #1f2937; padding-bottom: 8px; text-transform: uppercase; font-size: 13px;">Operating Income / Revenue</h3>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin: 15px 0;">
+            <span>Gross Trading Revenue / Professional Settlements</span>
+            <span style="font-family: monospace; color: #34d399;">+${{ "%.2f"|format(total_revenue|default(0.0)) }}</span>
+        </div>
+
+        <!-- Expenses Matrix -->
+        <h3 style="color: #f87171; margin-top: 30px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; text-transform: uppercase; font-size: 13px;">Operating Debits / Expenses</h3>
+        {% if expense_matrix %}
+            {% for exp_type, amt in expense_matrix.items() %}
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin: 12px 0; padding-left: 10px;">
+                <span style="color: #cbd5e1;">{{ exp_type }}</span>
+                <span style="font-family: monospace; color: #f87171;">-${{ "%.2f"|format(amt) }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="color: #64748b; font-size: 12px; margin: 15px 0; padding-left: 10px;">No operational expense line entries captured.</div>
+        {% endif %}
+
+        <!-- Net Position -->
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-top: 40px; padding: 16px; background-color: #030712; border-radius: 8px; border-left: 4px solid #4f46e5;">
+            <span>NET TRADING PROFIT / (LOSS)</span>
+            <span style="font-family: monospace; color: {% if net_profit|default(0.0) >= 0 %}#34d399{% else %}#f87171{% endif %};">
+                ${{ "%.2f"|format(net_profit|default(0.0)) }}
+            </span>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

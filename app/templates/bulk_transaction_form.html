@@ -1,10 +1,68 @@
-{% if transactions %}
-    <h2>Bulk Transactions Added Successfully!</h2>
-    <ul>
-        {% for txn in transactions %}
-            <li>{{ txn.description }} - ${{ txn.debit }}</li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No transactions found.</p>
-{% endif %}
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Batch CSV Matrix File Upload</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Ingest large sets of financial operations directly into ledger memory maps</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+        <form action="/add_transaction_bulk" method="POST" class="space-y-6">
+            <div>
+                <label for="company_id" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Target Enterprise Profile Entity context Mapping *</label>
+                <!-- FIXED: Embedded selection logic directly inside the main operating form drop menu -->
+                <select id="company_id" name="company_id" required class="w-full max-w-md px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-slate-950 focus:bg-white transition-all">
+                    {% for comp in companies %}
+                        <option value="{{ comp.id }}" {% if company and comp.id == company.id %}selected{% endif %}>
+                            {{ comp.name }} (ID: {{ comp.id }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="csv_data" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Raw CSV Text Stream Inputs *</label>
+                <div class="text-xs text-slate-400 mb-2 font-mono bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    Required Headers Format layout: Date,Description,Debit,Credit,Type of Expense,Type of Income
+                </div>
+                <textarea id="csv_data" name="csv_data" rows="10" required class="w-full font-mono text-xs px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-slate-950 focus:bg-white transition-all resize-none" placeholder="15-07-2026,Client Settlement,0.00,1450.00,,sales&#10;16-07-2026,Office Supply Store,240.50,0.00,Utilities,"></textarea>
+            </div>
+
+            <button type="submit" class="w-full sm:w-auto px-6 py-3.5 bg-slate-950 text-white font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors shadow-md cursor-pointer">
+                Process Batch Operations Arrays
+            </button>
+        </form>
+    </div>
+
+    <!-- Generated Ledger Commit Summary Logs Section View -->
+    {% if transactions %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Processed Batch Commit Output Logs ({{ transactions|length }} Records)</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-400 text-xs font-bold uppercase border-b border-slate-100">
+                        <th class="p-4">Operational Date</th>
+                        <th class="p-4">Line Journal Description</th>
+                        <th class="p-4 text-right">Debit Balance</th>
+                        <th class="p-4 text-right">Credit Balance</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for t in transactions %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="p-4 font-medium font-mono text-xs">{{ t.date }}</td>
+                        <td class="p-4 max-w-[280px] truncate">{{ t.description }}</td>
+                        <td class="p-4 text-right font-mono text-xs text-rose-600">${{ "{:,.2f}".format(t.debit or 0.0) }}</td>
+                        <td class="p-4 text-right font-mono text-xs text-emerald-600">${{ "{:,.2f}".format(t.credit or 0.0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

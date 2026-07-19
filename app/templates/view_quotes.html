@@ -1,33 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Quotes</title>
-</head>
-<body>
-    <h1>All Quotes</h1>
-    <table border="1">
-        <tr>
-            <th>Quote ID</th>
-            <th>Item Name</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Quote Date</th>
-            <th>Actions</th>
-        </tr>
-        {% for quote in quotes %}
-        <tr>
-            <td>{{ quote.id }}</td>
-            <td>{{ quote.item_name }}</td>
-            <td>{{ quote.quantity }}</td>
-            <td>${{ quote.price }}</td>
-            <td>{{ quote.quote_date }}</td>
-            <td>
-                <form action="{{ url_for('invoice_routes.convert_to_invoice', quote_id=quote.id) }}" method="POST">
-                    <button type="submit">Convert to Invoice</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #6366f1; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Client Quotes Log Summary</h1>
+        <p style="margin: 4px 0 0 0; color: #6366f1; font-weight: bold; font-size: 12px;">Active Client: {{ company.name }}</p>
+    </div>
+
+    <!-- Government Compliance Filtering Rows Bar -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/quote_routes/view_quotes" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Assessment Tracking Period</label>
+                <select name="fy" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;"><option value="2026">Financial Year 2026</option></select>
+            </div>
+            <button type="submit" style="padding: 11px 24px; background-color: #6366f1; color: #fff; font-weight: bold; border-radius: 6px; border: none; height: 40px; text-transform: uppercase; font-size: 12px;">Filter Records</button>
+        </form>
+    </div>
+
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 2px solid #1f2937; color: #94a3b8; text-transform: uppercase; font-size: 11px;">
+                    <th style="padding: 10px;">ID</th>
+                    <th style="padding: 10px;">Prospect Name</th>
+                    <th style="padding: 10px;">Itemized Summary Details</th>
+                    <th style="padding: 10px; text-align: right;">Estimated Total ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if quotes %}
+                    {% for q in quotes %}
+                    <tr style="border-bottom: 1px solid #1f2937;">
+                        <td style="padding: 12px 10px; font-family: monospace;">#{{ q.id }}</td>
+                        <td style="padding: 12px 10px; color: #fff; font-weight: bold;">{{ q.customer_name }}</td>
+                        <td style="padding: 12px 10px; color: #cbd5e1;">{{ q.line_items }}</td>
+                        <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #818cf8;">${{ "%.2f"|format(q.total_amount|float) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" style="padding: 30px; text-align: center; color: #64748b;">No outstanding estimates detected in database lines.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

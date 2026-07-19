@@ -1,50 +1,49 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>View Purchase Orders</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
-        h1 { color: #333; }
-        table { border-collapse: collapse; width: 100%; background-color: white; }
-        th, td { padding: 10px; border: 1px solid black; }
-        button { padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button.delete { background-color: #e74c3c; }
-        button:hover { opacity: 0.8; }
-    </style>
-</head>
-<body>
-    <h1>All Purchase Orders</h1>
-    <table border="1">
-        <tr>
-            <th>Supplier Name</th>
-            <th>Line Items</th>
-            <th>Total Amount</th>
-            <th>Shipping Address</th>
-            <th>Payment Status</th>
-            <th>Actions</th>
-        </tr>
-        {% for po in purchase_orders %}
-        <tr>
-            <td>{{ po.supplier_name }}</td>
-            <td>{{ po.line_items }}</td>
-            <td>${{ po.total_amount }}</td>
-            <td>{{ po.shipping_address }}</td>
-            <td>{{ po.payment_status }}</td>
-            <td>
-                <!-- Convert to Bill Button -->
-                <form action="/purchase_order_routes/convert_to_bill/{{ po.id }}" method="POST" style="display:inline;">
-                    <button type="submit">Convert to Bill</button>
-                </form>
-                
-                <!-- Delete Purchase Order Button -->
-                <form action="/purchase_order_routes/delete_purchase_order/{{ po.id }}" method="POST" style="display:inline;">
-                    <button type="submit" class="delete">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    <br>
-    <a href="/purchase_order_routes/add_purchase_order">Add a New Purchase Order</a>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #f59e0b; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800;">Purchase Orders Log Registry</h1>
+        <p style="margin: 4px 0 0 0; color: #f59e0b; font-weight: bold; font-size: 12px;">Active Client: {{ company.name }}</p>
+    </div>
+
+    <!-- Dates Calendars -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/purchase_order_routes/view_purchase_orders" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Financial Year Segment</label>
+                <select name="fy" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;"><option value="2026">FY 2026 Horizon</option></select>
+            </div>
+            <button type="submit" style="padding: 11px 24px; background-color: #f59e0b; color: #000; font-weight: bold; border-radius: 6px; border: none; height: 40px; text-transform: uppercase; font-size: 12px;">Filter POs</button>
+        </form>
+    </div>
+
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 2px solid #1f2937; color: #94a3b8; text-transform: uppercase; font-size: 11px;">
+                    <th style="padding: 10px;">PO #</th>
+                    <th style="padding: 10px;">Supplier Vendor</th>
+                    <th style="padding: 10px;">Item Summaries</th>
+                    <th style="padding: 10px; text-align: right;">Valuation ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if purchase_orders %}
+                    {% for po in purchase_orders %}
+                    <tr style="border-bottom: 1px solid #1f2937;">
+                        <td style="padding: 12px 10px; font-family: monospace;">#{{ po.id }}</td>
+                        <td style="padding: 12px 10px; color: #fff; font-weight: bold;">{{ po.supplier_name }}</td>
+                        <td style="padding: 12px 10px; color: #cbd5e1;">{{ po.line_items }}</td>
+                        <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #fbbf24;">${{ "%.2f"|format(po.total_amount|float) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" style="padding: 30px; text-align: center; color: #64748b;">No corporate purchase orders recorded for this accounting scope.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

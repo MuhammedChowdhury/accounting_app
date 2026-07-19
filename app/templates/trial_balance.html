@@ -1,14 +1,72 @@
-<table>
-    <tr>
-        <th>Account</th>
-        <th>Debit</th>
-        <th>Credit</th>
-    </tr>
-    {% for entry in trial_balance_data %}
-    <tr>
-        <td>{{ entry.account_name }}</td>
-        <td>{{ entry.debit }}</td>
-        <td>{{ entry.credit }}</td>
-    </tr>
-    {% endfor %}
-</table>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #10b981; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #fff;">System Trial Balance Ledger Audit</h1>
+        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px;">Mathematical verification audit matching double-entry ledger columns</p>
+        <p style="margin: 4px 0 0 0; color: #10b981; font-weight: bold; font-size: 12px;">Entity: {{ company.name }} | ABN: {{ company.abn_number }}</p>
+    </div>
+
+    <!-- Accounting Period Parameters -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/trial-balance" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Audit Financial Year</label>
+                <select name="financial_year" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="2026">FY 2025 - 2026</option>
+                    <option value="2025">FY 2024 - 2025</option>
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Audit Target Quarter</label>
+                <select name="quarter" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="ALL">Full Account Horizon</option>
+                    <option value="Q1">Q1 Return Period</option>
+                    <option value="Q2">Q2 Return Period</option>
+                    <option value="Q3">Q3 Return Period</option>
+                    <option value="Q4">Q4 Return Period</option>
+                </select>
+            </div>
+
+            <button type="submit" style="padding: 11px 24px; background-color: #10b981; color: #000; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 40px;">
+                Execute Verification Check
+            </button>
+        </form>
+    </div>
+
+    <!-- Audit Summary Balances Card -->
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #1f2937; color: #94a3b8; text-transform: uppercase; font-size: 11px;">
+                    <th style="padding: 12px 10px; text-align: left;">Audit Summary Verification Category</th>
+                    <th style="padding: 12px 10px; text-align: right;">Total Debit Summary Balance ($)</th>
+                    <th style="padding: 12px 10px; text-align: right;">Total Credit Summary Balance ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 12px 10px;">Ledger Matrix Accumulations Check Allocation</td>
+                    <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #34d399;">${{ "%.2f"|format(total_debits|default(0.0)) }}</td>
+                    <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #f87171;">${{ "%.2f"|format(total_credits|default(0.0)) }}</td>
+                </tr>
+                <tr style="font-weight: bold; font-size: 14px; background-color: #030712; border-top: 2px solid #10b981;">
+                    <td style="padding: 16px 10px;">Mathematical Ledger Matching Alignment State</td>
+                    <td colspan="2" style="padding: 16px 10px; text-align: right;">
+                        {% if is_balanced %}
+                            <span style="color: #34d399; background-color: rgba(16,185,129,0.1); padding: 6px 16px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.2);">✓ COLUMNS BALANCED ACCURATELY</span>
+                        {% else %}
+                            <span style="color: #f87171; background-color: rgba(239,68,68,0.1); padding: 6px 16px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);">❌ COLUMNS OUT OF BALANCE</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

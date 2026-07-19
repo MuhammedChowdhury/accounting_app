@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-8 animate-fade-in">
+    <!-- Main Dashboard Section Banner Frame -->
+    <div class="glass-panel p-8 rounded-3xl border border-slate-900 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Single Touch Payroll (STP) Phase 2 Core active</span>
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight mt-2">Payroll Run Command Deck</h1>
+            <p class="text-xs text-slate-400 mt-1">Automated Australian taxation compliance framework logs &bull; Standard Legislated Super Rate: <span class="text-indigo-400 font-bold">12.0%</span></p>
+        </div>
+    </div>
+
+    <!-- Input Parameters Wizard Form Setup split layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left execution setup form panel -->
+        <div class="glass-panel rounded-3xl border border-slate-900 p-8 shadow-xl">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 border-b border-slate-900 pb-3 mb-5">Calculate Pay Run Row</h3>
+            <form action="/payroll" method="POST" class="space-y-5">
+                <div>
+                    <label for="employee_id" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Select Target Employee Profile *</label>
+                    <select id="employee_id" name="employee_id" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500">
+                        {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.name }} (ID: {{ emp.id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="period_start" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Cycle Start *</label>
+                        <input type="date" id="period_start" name="period_start" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="period_end" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Cycle End *</label>
+                        <input type="date" id="period_end" name="period_end" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="gross_wages" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Gross Base Wages ($ AUD) *</label>
+                    <input type="number" step="0.01" min="0" id="gross_wages" name="gross_wages" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs font-mono focus:outline-none focus:border-indigo-500" placeholder="0.00">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition-colors cursor-pointer text-center">
+                    Execute Pay Run Matrix Logging &rarr;
+                </button>
+            </form>
+        </div>
+
+        <!-- Right past executions and active submission transmission panel -->
+        <div class="lg:col-span-2 glass-panel rounded-3xl border border-slate-900 shadow-xl overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-900 bg-slate-950/40">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Past Pay Runs & STP Submission Node Interface</h3>
+            </div>
+            <div class="flex-1 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-400 font-bold border-b border-slate-900 uppercase">
+                            <th class="p-4">Reference Run ID</th>
+                            <th class="p-4">Gross Income</th>
+                            <th class="p-4">PAYG Tax Witheld</th>
+                            <th class="p-4">Super Owed (12.0%)</th>
+                            <th class="p-4">Net Payout</th>
+                            <th class="p-4">STP Node Status</th>
+                            <th class="p-4 text-center">Compliance Transmission Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-900 text-slate-300">
+                        {% for run in past_runs %}
+                        <tr class="hover:bg-slate-900/40 transition-colors">
+                            <td class="p-4 font-mono font-bold text-white">PAY-{{ "%04d" | format(run.id) }}</td>
+                            <td class="p-4 font-mono">${{ "{:,.2f}".format(run.gross_wages) }}</td>
+                            <td class="p-4 font-mono text-rose-400">${{ "{:,.2f}".format(run.payg_withholding) }}</td>
+                            <td class="p-4 font-mono text-indigo-400">${{ "{:,.2f}".format(run.super_guarantee) }}</td>
+                            <td class="p-4 font-mono text-emerald-400 font-semibold">${{ "{:,.2f}".format(run.net_pay) }}</td>
+                            <td class="p-4">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-bold {% if run.stp_status == 'Lodged_ATO' %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 {% else %} bg-amber-500/10 text-amber-400 border border-amber-500/20 {% endif %}">
+                                    {{ run.stp_status }}
+                                </span>
+                            </td>
+                            <td class="p-4 flex items-center justify-center">
+                                {% if run.stp_status != 'Lodged_ATO' %}
+                                <form action="/payroll/transmit_stp/{{ run.id }}" method="POST" class="flex items-center space-x-1">
+                                    <input type="text" name="declaration_signature" required placeholder="Type Signatory Signature" class="px-2 py-1 bg-slate-900 border border-slate-800 rounded text-[10px] text-white focus:outline-none focus:border-indigo-500 max-w-[120px]">
+                                    <button type="submit" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] rounded transition-colors shadow-sm cursor-pointer">
+                                        🚀 Transmit ATO
+                                    </button>
+                                </form>
+                                {% else %}
+                                <div class="text-[10px] text-slate-500 font-mono truncate max-w-[160px]" title="ATO Submission ID: {{ run.stp_submission_id }}">
+                                    Receipt: {{ run.stp_submission_id }}
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; color: #fff;">
+    
+    <div style="background: linear-gradient(135deg, #111827 0%, #1e1b4b 100%); border: 1px solid #1f2937; padding: 30px; border-radius: 16px; margin-bottom: 30px;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800;">Statement of Cash Flows</h1>
+        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px; font-weight: bold;">Active Client Ledger: {{ company.name }} (ABN: {{ company.abn_number }})</p>
+    </div>
+
+    <!-- ➕ THE INJECTED DATES CALENDAR SELECTION FILTER FOR CASH MOVEMENTS -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/cash_flow" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Cash Flow Start Date</label>
+                <input type="date" name="date_from" value="2026-01-01" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px; box-sizing: border-box; font-size: 13px;">
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Cash Flow End Date</label>
+                <input type="date" name="date_to" value="2026-12-31" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px; box-sizing: border-box; font-size: 13px;">
+            </div>
+
+            <button type="submit" style="padding: 11px 24px; background-color: #4f46e5; color: #fff; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 40px;">Compute Liquidity</button>
+        </form>
+    </div>
+
+    <!-- Data Presentation Table -->
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 16px; border: 1px solid #1f2937;">
+        <h2 style="margin: 0 0 25px 0; color: #ffffff; font-size: 18px; border-bottom: 1px solid #1f2937; padding-bottom: 10px;">Net Liquidity Movements Matrix</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; color: #cbd5e1;">
+            <tbody>
+                <tr style="font-weight: bold; color: #ffffff; background-color: #1e293b;"><td style="padding: 12px 10px;">Cash Flows from Operating Activities</td><td style="padding: 12px 10px; text-align: right;">Amount ($)</td></tr>
+                <tr style="border-bottom: 1px solid #1f2937;"><td style="padding: 12px 10px; padding-left: 20px;">Receipts from Customers</td><td style="padding: 12px 10px; text-align: right; color: #34d399;">+${{ "%.2f"|format(statement.operating_receipts|default(0.0)|float) }}</td></tr>
+                <tr style="border-bottom: 1px solid #1f2937;"><td style="padding: 12px 10px; padding-left: 20px;">Payments to Suppliers & Staff</td><td style="padding: 12px 10px; text-align: right; color: #f87171;">-${{ "%.2f"|format(statement.operating_payments|default(0.0)|float) }}</td></tr>
+                <tr style="border-bottom: 1px solid #1f2937; font-weight: bold;"><td style="padding: 12px 10px; padding-left: 20px; color: #818cf8;">Net Operating Activities Inflow</td><td style="padding: 12px 10px; text-align: right; color: #818cf8;">${{ "%.2f"|format(statement.net_operating|default(0.0)|float) }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

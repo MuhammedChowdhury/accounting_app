@@ -1,62 +1,55 @@
-from flask import Blueprint, request, jsonify, render_template
-from app.models import db, Quote
-from datetime import datetime
+import logging
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
+from app import db
+from app.models import Company, Quote
 
 quote_routes = Blueprint('quote_routes', __name__)
 
-### 🔹 Add a Quote ###
-@quote_routes.route('/add_quote', methods=['POST'])
+@quote_routes.route('/add_quote', methods=['GET', 'POST'])
 def add_quote():
-    """Receives quote data and saves it to the database."""
+    """Renders the quote generator or saves a new estimate record row."""
     try:
-        data = request.form
-        customer_name = data.get('customer_name')
-        line_items = data.get('line_items')
-        total_amount = float(data.get('total_amount'))
-        validity_period = datetime.strptime(data.get('validity_period'), '%Y-%m-%d')
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        if not company_id:
+            return redirect(url_for('company_routes.select_company'))
+        company = db.session.get(Company, company_id)
 
-        if not customer_name or not line_items or not total_amount or not validity_period:
-            return jsonify({'error': 'Missing required fields'}), 400
+        if request.method == 'POST':
+            customer_name = request.form.get('customer_name')
+            line_items = request.form.get('line_items')
+            total_amount = request.form.get('total_amount', type=float, default=0.0)
+            validity_str = request.form.get('validity_period')
 
-        new_quote = Quote(
-            customer_name=customer_name,
-            line_items=line_items,
-            total_amount=total_amount,
-            validity_period=validity_period,
-            payment_status="Pending"  # Default status
-        )
-        db.session.add(new_quote)
-        db.session.commit()
+            if customer_name and total_amount:
+                from datetime import datetime
+                try:
+                    validity_period = datetime.strptime(validity_str, '%Y-%m-%d').date()
+                except Exception:
+                    validity_period = datetime.utcnow().date()
 
-        return jsonify({'message': '✅ Quote added successfully!', 'quote_id': new_quote.id}), 201
-    except ValueError as ve:
-        return jsonify({'error': f'⚠ Invalid data type: {str(ve)}'}), 400
+                new_quote = Quote(
+                    customer_name=customer_name,
+                    line_items=line_items,
+                    total_amount=total_amount,
+                    validity_period=validity_period
+                )
+                db.session.add(new_quote)
+                db.session.commit()
+                return redirect(url_for('quote_routes.view_quotes', company_id=company_id))
+
+        return render_template('add_quote.html', company=company)
     except Exception as e:
-        return jsonify({'error': f'⚠ Failed to add quote: {str(e)}'}), 500
+        logging.error(f"Quote generation route crash: {e}", exc_info=True)
+        return jsonify({'error': 'Configuration failure.'}), 500
 
-### 🔹 View Quotes (HTML) ###
 @quote_routes.route('/view_quotes', methods=['GET'])
 def view_quotes():
-    """Displays quotes in an HTML template."""
+    """Fetches every cost estimate log registered inside database."""
     try:
-        quotes = Quote.query.all()
-        return render_template('quotes.html', quotes=quotes)
+        company_id = request.args.get('company_id', type=int) or session.get('company_id')
+        company = db.session.get(Company, company_id)
+        quotes = db.session.query(Quote).all()
+        return render_template('view_quotes.html', company=company, quotes=quotes)
     except Exception as e:
-        return jsonify({'error': f'⚠ Failed to fetch quotes: {str(e)}'}), 500
-
-### 🔹 View Quotes (JSON) ###
-@quote_routes.route('/api/quotes', methods=['GET'])
-def get_quotes():
-    """Returns all quotes in JSON format."""
-    try:
-        quotes = Quote.query.all()
-        return jsonify([{
-            'id': quote.id,
-            'customer_name': quote.customer_name,
-            'line_items': quote.line_items,
-            'total_amount': quote.total_amount,
-            'validity_period': quote.validity_period.strftime('%Y-%m-%d'),
-            'payment_status': quote.payment_status
-        } for quote in quotes]), 200
-    except Exception as e:
-        return jsonify({'error': f'⚠ Failed to fetch quotes: {str(e)}'}), 500
+        logging.error(f"Quotes registry log rendering failure: {e}", exc_info=True)
+        return jsonify({'error': 'Database extraction failed.'}), 500

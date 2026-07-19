@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <!-- Professional Header -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #a78bfa; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #fff;">General Ledger Audit Engine</h1>
+        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px;">Chronological Double-Entry Transaction Audit Trail</p>
+        <p style="margin: 4px 0 0 0; color: #a78bfa; font-weight: bold; font-size: 12px;">Entity: {{ company.name }} | ABN: {{ company.abn_number }}</p>
+    </div>
+
+    <!-- Calendar Timeline Selection Filter -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/general_ledger_form" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            
+            <div style="flex: 1; min-width: 120px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Financial Year</label>
+                <select name="financial_year" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="2026">2025 - 2026</option>
+                    <option value="2025">2024 - 2025</option>
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 120px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Reporting Quarter</label>
+                <select name="quarter" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="ALL">Full Financial Year</option>
+                    <option value="Q1">Q1 (Jul - Sep)</option>
+                    <option value="Q2">Q2 (Oct - Dec)</option>
+                    <option value="Q3">Q3 (Jan - Mar)</option>
+                    <option value="Q4">Q4 (Apr - Jun)</option>
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Custom Date From</label>
+                <input type="date" name="date_from" value="2026-01-01" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px; box-sizing: border-box;">
+            </div>
+
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Custom Date To</label>
+                <input type="date" name="date_to" value="2026-12-31" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px; box-sizing: border-box;">
+            </div>
+
+            <button type="submit" style="padding: 11px 24px; background-color: #a78bfa; color: #000; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 40px;">
+                Query Ledger
+            </button>
+        </form>
+    </div>
+
+    <!-- Data Presentation Table -->
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #cbd5e1;">
+            <thead>
+                <tr style="border-bottom: 2px solid #1f2937; color: #94a3b8; font-weight: bold; text-transform: uppercase;">
+                    <th style="padding: 10px;">Posting Date</th>
+                    <th style="padding: 10px;">Description Summary</th>
+                    <th style="padding: 10px;">Allocation Type</th>
+                    <th style="padding: 10px; text-align: right;">Debit ($ AUD)</th>
+                    <th style="padding: 10px; text-align: right;">Credit ($ AUD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if records %}
+                    {% for record in records %}
+                    <tr style="border-bottom: 1px solid #1f2937;">
+                        <td style="padding: 12px 10px; font-family: monospace;">{{ record.date }}</td>
+                        <td style="padding: 12px 10px; color: #ffffff;">{{ record.description }}</td>
+                        <td style="padding: 12px 10px; color: #c084fc;">{{ record.type_of_expense or record.type_of_income or 'Journal balancing' }}</td>
+                        <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #34d399;">{% if record.debit > 0 %}${{ "%.2f"|format(record.debit) }}{% else %}-{% endif %}</td>
+                        <td style="padding: 12px 10px; text-align: right; font-family: monospace; color: #f87171;">{% if record.credit > 0 %}${{ "%.2f"|format(record.credit) }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="padding: 30px; text-align: center; color: #64748b;">No matching transactional timeline positions identified for this active query profile.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

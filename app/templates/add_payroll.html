@@ -1,34 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Payroll Record</title>
-</head>
-<body>
-    <h1>📄 Add Payroll Record</h1>
-    <form action="/payroll_routes/add_payroll" method="POST">
-        <label for="employee_name">Employee Name:</label>
-        <input type="text" id="employee_name" name="employee_name" required><br><br>
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8 animate-fade-in">
+    <div class="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/20 p-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.05),transparent_50%)]"></div>
+        
+        <div class="relative z-10 mb-8 space-y-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                👥 STP Phase 2 Ledger Entry
+            </span>
+            <h2 class="text-2xl font-extrabold text-white tracking-tight">Add Payroll Line Record</h2>
+            <p class="text-xs text-slate-400">Post an individual historical employee calculation line straight into your client database tables.</p>
+        </div>
 
-        <label for="gross_wages">Gross Wages ($):</label>
-        <input type="number" id="gross_wages" name="gross_wages" step="0.01" required><br><br>
+        <!-- Corrected dynamic form target using your operational session tokens -->
+        <form class="space-y-5 relative z-10" action="/payroll?company_id={{ company.id if company else '' }}" method="POST">
+            
+            <div>
+                <label for="employee_name" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Employee Legal Name</label>
+                <input id="employee_name" name="employee_name" type="text" required class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-800 bg-slate-950 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs transition-colors" placeholder="Full Legal Name">
+            </div>
 
-        <label for="date">Date:</label>
-        <input type="text" id="date" name="date" placeholder="YYYY-MM-DD" required><br><br>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="gross_wages" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Gross Wages ($ AUD)</label>
+                    <input id="gross_wages" name="gross_wages" type="number" step="0.01" required class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-800 bg-slate-950 text-slate-200 focus:outline-none text-xs transition-colors" placeholder="0.00">
+                </div>
+                <div>
+                    <label for="date" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Payment Operational Date</label>
+                    <input id="date" name="date" type="text" placeholder="YYYY-MM-DD" required class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-800 bg-slate-950 text-slate-200 focus:outline-none text-xs transition-colors">
+                </div>
+            </div>
 
-        <label for="payg_withholding">PAYG Withholding ($):</label>
-        <input type="number" id="payg_withholding" name="payg_withholding" step="0.01"><br><br>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="payg_withholding" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">PAYG Withholding ($)</label>
+                    <input id="payg_withholding" name="payg_withholding" type="number" step="0.01" class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-800 bg-slate-950 text-slate-200 focus:outline-none text-xs transition-colors" placeholder="0.00">
+                </div>
+                <div>
+                    <label for="superannuation" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Super Guarantee ($)</label>
+                    <input id="superannuation" name="superannuation" type="number" step="0.01" class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-800 bg-slate-950 text-slate-200 focus:outline-none text-xs transition-colors" placeholder="12.0% calculated">
+                </div>
+                <div>
+                    <label for="deductions" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Other Deductions ($)</label>
+                    <input id="deductions" name="deductions" type="number" step="0.01" class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-800 bg-slate-950 text-slate-200 focus:outline-none text-xs transition-colors" placeholder="0.00">
+                </div>
+            </div>
 
-        <label for="superannuation">Superannuation ($):</label>
-        <input type="number" id="superannuation" name="superannuation" step="0.01"><br><br>
-
-        <label for="deductions">Deductions ($):</label>
-        <input type="number" id="deductions" name="deductions" step="0.01"><br><br>
-
-        <label for="company_id">Company ID:</label>
-        <input type="number" id="company_id" name="company_id" required><br><br>
-
-        <button type="submit">Submit Payroll</button>
-    </form>
-</body>
-</html>
+            <div class="pt-4">
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent text-xs font-bold uppercase tracking-wider rounded-xl text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all duration-150">
+                    Submit Payroll Ledger Line &rarr;
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,46 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Balance Sheet</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
-        h1, h2 { color: #333; }
-        table { border-collapse: collapse; width: 100%; background-color: white; }
-        th, td { padding: 10px; border: 1px solid black; text-align: left; }
-    </style>
-</head>
-<body>
-    <h1>Balance Sheet</h1>
-    <h2>Company: {{ company_details.name }} (ABN: {{ company_details.abn }})</h2>
-    <p>Address: {{ company_details.address }}</p>
-    <h3>Balance Sheet for Period: {{ company_details.period.from }} - {{ company_details.period.to }}</h3>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; font-family: system-ui, sans-serif; color: #fff;">
+    
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #030712 100%); border-left: 4px solid #38bdf8; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #fff;">Statement of Financial Position (Balance Sheet)</h1>
+        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px;">Corporate Asset, Liability & Equity Structural Ledger balances</p>
+        <p style="margin: 4px 0 0 0; color: #38bdf8; font-weight: bold; font-size: 12px;">Entity: {{ company.name }} | ABN: {{ company.abn_number }}</p>
+    </div>
 
-    <h3>Assets</h3>
-    <table>
-        <tr><th>Category</th><th>Amount</th></tr>
-        {% for asset in assets %}
-        <tr>
-            <td>{{ asset.subcategory }}</td>
-            <td>${{ "{:,.2f}".format(asset.amount) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <p><strong>Total Assets:</strong> ${{ "{:,.2f}".format(total_assets) }}</p>
+    <!-- Fiscal Point-in-Time Parameters Filter -->
+    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 30px;">
+        <form method="GET" action="/balance_sheet" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <input type="hidden" name="company_id" value="{{ company.id }}">
+            
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">As At Financial Year</label>
+                <select name="financial_year" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="2026">As at 30 June 2026</option>
+                    <option value="2025">As at 30 June 2025</option>
+                </select>
+            </div>
 
-    <h3>Liabilities</h3>
-    <table>
-        <tr><th>Category</th><th>Amount</th></tr>
-        {% for liability in liabilities %}
-        <tr>
-            <td>{{ liability.subcategory }}</td>
-            <td>${{ "{:,.2f}".format(liability.amount) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <p><strong>Total Liabilities:</strong> ${{ "{:,.2f}".format(total_liabilities) }}</p>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">As At Quarter Closing Date</label>
+                <select name="quarter" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #030712; color: #fff; height: 40px;">
+                    <option value="Full">End of Fiscal Year Period</option>
+                    <option value="Q1">End of Q1 (30 Sept)</option>
+                    <option value="Q2">End of Q2 (31 Dec)</option>
+                    <option value="Q3">End of Q3 (31 Mar)</option>
+                    <option value="Q4">End of Q4 (30 Jun)</option>
+                </select>
+            </div>
 
-    <h3>Equity</h3>
-    <p><strong>Calculated Equity:</strong> ${{ "{:,.2f}".format(equity) }}</p>
-    <p>(Derived as Total Assets - Total Liabilities)</p>
-</body>
-</html>
+            <button type="submit" style="padding: 11px 24px; background-color: #38bdf8; color: #000; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; text-transform: uppercase; font-size: 12px; height: 40px;">
+                Compute Balances
+            </button>
+        </form>
+    </div>
+
+    <!-- Account Balances Summary Tables -->
+    <div style="background-color: #0f172a; padding: 30px; border-radius: 12px; border: 1px solid #1f2937; display: flex; flex-direction: column; gap: 30px;">
+        <div>
+            <h3 style="color: #34d399; margin: 0 0 12px 0; border-bottom: 1px solid #1f2937; padding-bottom: 8px; text-transform: uppercase; font-size: 13px;">Assets Matrix</h3>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #cbd5e1;">
+                <span>Total Registered Ledger Asset Capital allocations</span>
+                <b style="font-family: monospace; color: #34d399;">${{ "%.2f"|format(total_assets|default(0.0)) }}</b>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="color: #f87171; margin: 0 0 12px 0; border-bottom: 1px solid #1f2937; padding-bottom: 8px; text-transform: uppercase; font-size: 13px;">Liabilities Matrix</h3>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #cbd5e1;">
+                <span>Total External Supplier & Tax Debt Obligations</span>
+                <b style="font-family: monospace; color: #f87171;">-${{ "%.2f"|format(total_liabilities|default(0.0)) }}</b>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; background-color: #030712; padding: 16px; border-radius: 8px; border-left: 4px solid #38bdf8;">
+            <span>TOTAL NET RETENTION EQUITY STATE</span>
+            <span style="font-family: monospace; color: #38bdf8;">${{ "%.2f"|format(net_equity|default(0.0)) }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
